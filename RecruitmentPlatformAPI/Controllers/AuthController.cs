@@ -1,19 +1,11 @@
 using Microsoft.AspNetCore.Authorization;
-using RecruitmentPlatformAPI.DTOs;
-using RecruitmentPlatformAPI.DTOs.Auth;
-using RecruitmentPlatformAPI.DTOs.Profile;
-using RecruitmentPlatformAPI.DTOs.Reference;
-using RecruitmentPlatformAPI.Models.Core;
-using RecruitmentPlatformAPI.Models.Reference;
-using RecruitmentPlatformAPI.Models.Authentication;
-using RecruitmentPlatformAPI.Models.Assessment;
-using RecruitmentPlatformAPI.Services;
-using RecruitmentPlatformAPI.Services.Interfaces;
-using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using RecruitmentPlatformAPI.DTOs;
+using RecruitmentPlatformAPI.Services;
 
-namespace RecruitmentPlatformAPI.Controllers {
-/// <summary>
+namespace RecruitmentPlatformAPI.Controllers
+{
+    /// <summary>
     /// Authentication and authorization endpoints for user registration, login, email verification, and password reset
     /// </summary>
     [ApiController]

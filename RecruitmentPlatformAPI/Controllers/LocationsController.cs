@@ -1,19 +1,12 @@
-using RecruitmentPlatformAPI.DTOs;
-using RecruitmentPlatformAPI.DTOs.Auth;
-using RecruitmentPlatformAPI.DTOs.Profile;
-using RecruitmentPlatformAPI.DTOs.Reference;
-using RecruitmentPlatformAPI.Models.Core;
-using RecruitmentPlatformAPI.Models.Reference;
-using RecruitmentPlatformAPI.Models.Authentication;
-using RecruitmentPlatformAPI.Models.Assessment;
-using RecruitmentPlatformAPI.Services;
-using RecruitmentPlatformAPI.Services.Interfaces;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using RecruitmentPlatformAPI.Data;
+using RecruitmentPlatformAPI.DTOs;
+using RecruitmentPlatformAPI.Models;
 
-namespace RecruitmentPlatformAPI.Controllers {
-[ApiController]
+namespace RecruitmentPlatformAPI.Controllers
+{
+    [ApiController]
     [Route("api/[controller]")]
     [Produces("application/json")]
     public class LocationsController : ControllerBase

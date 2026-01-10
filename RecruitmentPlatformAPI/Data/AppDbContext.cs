@@ -1,19 +1,10 @@
 using Microsoft.EntityFrameworkCore;
-using RecruitmentPlatformAPI.DTOs;
-using RecruitmentPlatformAPI.DTOs.Auth;
-using RecruitmentPlatformAPI.DTOs.Profile;
-using RecruitmentPlatformAPI.DTOs.Reference;
-using RecruitmentPlatformAPI.Models.Core;
-using RecruitmentPlatformAPI.Models.Reference;
-using RecruitmentPlatformAPI.Models.Authentication;
-using RecruitmentPlatformAPI.Models.Assessment;
-using RecruitmentPlatformAPI.Services;
-using RecruitmentPlatformAPI.Services.Interfaces;
-using Microsoft.EntityFrameworkCore;
 using RecruitmentPlatformAPI.Data.Seed;
+using RecruitmentPlatformAPI.Models;
 
-namespace RecruitmentPlatformAPI.Data {
-public class AppDbContext : DbContext
+namespace RecruitmentPlatformAPI.Data
+{
+    public class AppDbContext : DbContext
     {
         public AppDbContext(DbContextOptions<AppDbContext> options) : base(options) { }
 

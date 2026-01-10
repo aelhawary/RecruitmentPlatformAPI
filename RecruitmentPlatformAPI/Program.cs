@@ -1,23 +1,10 @@
 using Microsoft.EntityFrameworkCore;
-
-using RecruitmentPlatformAPI.DTOs;
-using RecruitmentPlatformAPI.DTOs.Auth;
-using RecruitmentPlatformAPI.DTOs.Profile;
-using RecruitmentPlatformAPI.DTOs.Reference;
-using RecruitmentPlatformAPI.Models.Core;
-using RecruitmentPlatformAPI.Models.Reference;
-using RecruitmentPlatformAPI.Models.Authentication;
-using RecruitmentPlatformAPI.Models.Assessment;
-using RecruitmentPlatformAPI.Services;
-using RecruitmentPlatformAPI.Services.Interfaces;
-using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
-using RecruitmentPlatformAPI.Data;
-
-
 using RecruitmentPlatformAPI.Configuration;
+using RecruitmentPlatformAPI.Data;
+using RecruitmentPlatformAPI.Services;
 using AspNetCoreRateLimit;
 
 var builder = WebApplication.CreateBuilder(args);

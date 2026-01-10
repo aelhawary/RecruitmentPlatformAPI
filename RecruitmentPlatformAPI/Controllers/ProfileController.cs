@@ -1,20 +1,12 @@
 using Microsoft.AspNetCore.Authorization;
-using RecruitmentPlatformAPI.DTOs;
-using RecruitmentPlatformAPI.DTOs.Auth;
-using RecruitmentPlatformAPI.DTOs.Profile;
-using RecruitmentPlatformAPI.DTOs.Reference;
-using RecruitmentPlatformAPI.Models.Core;
-using RecruitmentPlatformAPI.Models.Reference;
-using RecruitmentPlatformAPI.Models.Authentication;
-using RecruitmentPlatformAPI.Models.Assessment;
-using RecruitmentPlatformAPI.Services;
-using RecruitmentPlatformAPI.Services.Interfaces;
-using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System.Security.Claims;
+using RecruitmentPlatformAPI.DTOs;
+using RecruitmentPlatformAPI.Services;
 
-namespace RecruitmentPlatformAPI.Controllers {
-[ApiController]
+namespace RecruitmentPlatformAPI.Controllers
+{
+    [ApiController]
     [Route("api/[controller]")]
     [Produces("application/json")]
     public class ProfileController : ControllerBase

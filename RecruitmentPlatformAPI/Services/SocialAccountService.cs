@@ -1,20 +1,12 @@
 using Microsoft.EntityFrameworkCore;
-using RecruitmentPlatformAPI.DTOs;
-using RecruitmentPlatformAPI.DTOs.Auth;
-using RecruitmentPlatformAPI.DTOs.Profile;
-using RecruitmentPlatformAPI.DTOs.Reference;
-using RecruitmentPlatformAPI.Models.Core;
-using RecruitmentPlatformAPI.Models.Reference;
-using RecruitmentPlatformAPI.Models.Authentication;
-using RecruitmentPlatformAPI.Models.Assessment;
-using RecruitmentPlatformAPI.Services;
-using RecruitmentPlatformAPI.Services.Interfaces;
-using Microsoft.EntityFrameworkCore;
 using RecruitmentPlatformAPI.Data;
+using RecruitmentPlatformAPI.DTOs;
 using RecruitmentPlatformAPI.Enums;
+using RecruitmentPlatformAPI.Models;
 
-namespace RecruitmentPlatformAPI.Services {
-public class SocialAccountService : ISocialAccountService
+namespace RecruitmentPlatformAPI.Services
+{
+    public class SocialAccountService : ISocialAccountService
     {
         private readonly AppDbContext _context;
         private readonly ILogger<SocialAccountService> _logger;

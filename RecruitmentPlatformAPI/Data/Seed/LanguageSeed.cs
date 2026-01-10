@@ -1,16 +1,8 @@
-using RecruitmentPlatformAPI.DTOs;
-using RecruitmentPlatformAPI.DTOs.Auth;
-using RecruitmentPlatformAPI.DTOs.Profile;
-using RecruitmentPlatformAPI.DTOs.Reference;
-using RecruitmentPlatformAPI.Models.Core;
-using RecruitmentPlatformAPI.Models.Reference;
-using RecruitmentPlatformAPI.Models.Authentication;
-using RecruitmentPlatformAPI.Models.Assessment;
-using RecruitmentPlatformAPI.Services;
-using RecruitmentPlatformAPI.Services.Interfaces;
+using RecruitmentPlatformAPI.Models;
 
-namespace RecruitmentPlatformAPI.Data.Seed {
-/// <summary>
+namespace RecruitmentPlatformAPI.Data.Seed
+{
+    /// <summary>
     /// Seed data for Language reference table (50 languages with bilingual support)
     /// Arabic and English prioritized with SortOrder 1-2
     /// </summary>

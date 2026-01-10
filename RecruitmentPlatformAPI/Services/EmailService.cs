@@ -1,22 +1,12 @@
 using Microsoft.Extensions.Options;
-using RecruitmentPlatformAPI.DTOs;
-using RecruitmentPlatformAPI.DTOs.Auth;
-using RecruitmentPlatformAPI.DTOs.Profile;
-using RecruitmentPlatformAPI.DTOs.Reference;
-using RecruitmentPlatformAPI.Models.Core;
-using RecruitmentPlatformAPI.Models.Reference;
-using RecruitmentPlatformAPI.Models.Authentication;
-using RecruitmentPlatformAPI.Models.Assessment;
-using RecruitmentPlatformAPI.Services;
-using RecruitmentPlatformAPI.Services.Interfaces;
-using Microsoft.Extensions.Options;
 using MailKit.Net.Smtp;
 using MailKit.Security;
 using MimeKit;
 using RecruitmentPlatformAPI.Configuration;
 
-namespace RecruitmentPlatformAPI.Services {
-public class EmailService : IEmailService
+namespace RecruitmentPlatformAPI.Services
+{
+    public class EmailService : IEmailService
     {
         private readonly ILogger<EmailService> _logger;
         private readonly EmailSettings _emailSettings;

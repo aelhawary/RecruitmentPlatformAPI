@@ -1,23 +1,14 @@
 using System.IdentityModel.Tokens.Jwt;
-using RecruitmentPlatformAPI.DTOs;
-using RecruitmentPlatformAPI.DTOs.Auth;
-using RecruitmentPlatformAPI.DTOs.Profile;
-using RecruitmentPlatformAPI.DTOs.Reference;
-using RecruitmentPlatformAPI.Models.Core;
-using RecruitmentPlatformAPI.Models.Reference;
-using RecruitmentPlatformAPI.Models.Authentication;
-using RecruitmentPlatformAPI.Models.Assessment;
-using RecruitmentPlatformAPI.Services;
-using RecruitmentPlatformAPI.Services.Interfaces;
-using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
 using RecruitmentPlatformAPI.Configuration;
+using RecruitmentPlatformAPI.Models;
 
-namespace RecruitmentPlatformAPI.Services {
-public class TokenService : ITokenService
+namespace RecruitmentPlatformAPI.Services
+{
+    public class TokenService : ITokenService
     {
         private readonly JwtSettings _jwtSettings;
 
