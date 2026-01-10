@@ -1,0 +1,649 @@
+@startuml JobIntel_Database_ERD
+
+' ====================
+' THEME & STYLING
+' ====================
+!theme plain
+skinparam linetype ortho
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam class {
+    BackgroundColor #E8F4F8
+    BorderColor #1976D2
+    ArrowColor #424242
+    FontName Arial
+    FontSize 11
+}
+
+' ====================
+' AUTHENTICATION LAYER
+' ====================
+entity "**User**" as user {
+  **PRIMARY KEY**
+  --
+  * Id : int <<PK, IDENTITY>>
+  ==
+  **PROFILE INFO**
+  --
+  * FirstName : nvarchar(50)
+  * LastName : nvarchar(50)
+  * Email : nvarchar(255) <<UNIQUE>>
+  ProfilePictureUrl : nvarchar(MAX)
+  ==
+  **AUTHENTICATION**
+  --
+  PasswordHash : nvarchar(MAX) <<nullable>>
+  * AuthProvider : int (1=Email, 2=Google)
+  ProviderUserId : nvarchar(MAX)
+  ==
+  **ACCOUNT SETTINGS**
+  --
+  * AccountType : nvarchar(MAX) <<JobSeeker|Recruiter>>
+  * IsEmailVerified : bit (default 0)
+  * IsActive : bit (default 1)
+  * ProfileCompletionStep : int (0-6)
+  ==
+  **SECURITY**
+  --
+  * FailedLoginAttempts : int (default 0)
+  LastFailedLoginAt : datetime2
+  LockoutEnd : datetime2
+  LockoutReason : nvarchar(MAX)
+  LastSuccessfulLoginAt : datetime2
+  ==
+  **AUDIT TRAIL**
+  --
+  * CreatedAt : datetime2 (UTC)
+  * UpdatedAt : datetime2 (UTC)
+  ==
+  **INDEXES**
+  --
+  IX_User_Email (UNIQUE)
+}
+
+entity "**EmailVerification**" as emailverif {
+  **PRIMARY KEY**
+  --
+  * Id : int <<PK, IDENTITY>>
+  ==
+  **FOREIGN KEYS**
+  --
+  * UserId : int <<FK→User.Id>>
+  ==
+  **VERIFICATION DATA**
+  --
+  * VerificationCode : nvarchar(6)
+  * CreatedAt : datetime2
+  * ExpiresAt : datetime2 (15 min)
+  * IsUsed : bit (default 0)
+  ==
+  **INDEXES**
+  --
+  IX_EmailVerifications_UserId
+}
+
+entity "**PasswordReset**" as passreset {
+  **PRIMARY KEY**
+  --
+  * Id : int <<PK, IDENTITY>>
+  ==
+  **FOREIGN KEYS**
+  --
+  * UserId : int <<FK→User.Id>>
+  ==
+  **RESET DATA**
+  --
+  * OtpCode : nvarchar(6)
+  * CreatedAt : datetime2
+  * ExpiresAt : datetime2 (15 min)
+  * IsUsed : bit (default 0)
+  ==
+  **INDEXES**
+  --
+  IX_PasswordResets_UserId
+}
+
+' ====================
+' REFERENCE DATA TABLES
+' ====================
+entity "**Country**" as country {
+  **PRIMARY KEY**
+  --
+  * Id : int <<PK, IDENTITY>>
+  ==
+  **DATA**
+  --
+  * IsoCode : nvarchar(2) <<UNIQUE>>
+  * NameEn : nvarchar(100)
+  * NameAr : nvarchar(100)
+  PhoneCode : nvarchar(10)
+  * IsActive : bit (default 1)
+  * SortOrder : int
+  * CreatedAt : datetime2
+  ==
+  **INDEXES**
+  --
+  IX_Country_IsoCode (UNIQUE)
+  ==
+  **SEED DATA**
+  --
+  65 countries (bilingual)
+}
+
+entity "**JobTitle**" as jobtitle {
+  **PRIMARY KEY**
+  --
+  * Id : int <<PK, IDENTITY>>
+  ==
+  **DATA**
+  --
+  * Title : nvarchar(100) <<UNIQUE>>
+  Category : nvarchar(50)
+  * IsActive : bit (default 1)
+  * CreatedAt : datetime2
+  ==
+  **INDEXES**
+  --
+  IX_JobTitle_Title (UNIQUE)
+  ==
+  **SEED DATA**
+  --
+  90 job titles (8 categories)
+}
+
+entity "**Language**" as language {
+  **PRIMARY KEY**
+  --
+  * Id : int <<PK, IDENTITY>>
+  ==
+  **DATA**
+  --
+  * IsoCode : nvarchar(3) <<UNIQUE>>
+  * NameEn : nvarchar(100)
+  * NameAr : nvarchar(100)
+  * IsActive : bit (default 1)
+  * SortOrder : int
+  * CreatedAt : datetime2
+  ==
+  **INDEXES**
+  --
+  IX_Language_IsoCode (UNIQUE)
+  ==
+  **SEED DATA**
+  --
+  50 languages (bilingual)
+}
+
+entity "**Skill**" as skill {
+  **PRIMARY KEY**
+  --
+  * Id : int <<PK, IDENTITY>>
+  ==
+  **DATA**
+  --
+  * Name : nvarchar(50)
+  * CreatedAt : datetime2
+  ==
+  **USAGE**
+  --
+  JobSeeker skills (manual + CV)
+  Job required skills
+}
+
+' ====================
+' JOB SEEKER MODULE
+' ====================
+entity "**JobSeeker**" as jobseeker {
+  **PRIMARY KEY**
+  --
+  * Id : int <<PK, IDENTITY>>
+  ==
+  **FOREIGN KEYS**
+  --
+  * UserId : int <<FK→User.Id, UNIQUE>>
+  JobTitleId : int <<FK→JobTitle.Id>>
+  CountryId : int <<FK→Country.Id>>
+  FirstLanguageId : int <<FK→Language.Id>>
+  SecondLanguageId : int <<FK→Language.Id>>
+  ==
+  **PROFILE DATA** (Step 1)
+  --
+  YearsOfExperience : int
+  City : nvarchar(100)
+  PhoneNumber : nvarchar(20)
+  FirstLanguageProficiency : nvarchar(MAX)
+  SecondLanguageProficiency : nvarchar(MAX)
+  ==
+  **AUDIT TRAIL**
+  --
+  * CreatedAt : datetime2
+  * UpdatedAt : datetime2
+  ==
+  **INDEXES**
+  --
+  IX_JobSeekers_UserId (UNIQUE)
+  IX_JobSeekers_CountryId
+  IX_JobSeekers_JobTitleId
+  IX_JobSeekers_FirstLanguageId
+  IX_JobSeekers_SecondLanguageId
+}
+
+entity "**Project**" as project {
+  **PRIMARY KEY**
+  --
+  * Id : int <<PK, IDENTITY>>
+  ==
+  **FOREIGN KEYS**
+  --
+  * JobSeekerId : int <<FK→JobSeeker.Id>>
+  ==
+  **PROJECT DATA** (Step 2)
+  --
+  * Title : nvarchar(150)
+  TechnologiesUsed : nvarchar(300)
+  Description : nvarchar(1200)
+  ProjectLink : nvarchar(300)
+  * DisplayOrder : int
+  ==
+  **AUDIT TRAIL**
+  --
+  * CreatedAt : datetime2
+  * UpdatedAt : datetime2
+  ==
+  **SOFT DELETE**
+  --
+  * IsDeleted : bit (default 0)
+  DeletedAt : datetime2
+  ==
+  **INDEXES**
+  --
+  IX_Project_JobSeekerId_IsDeleted
+}
+
+entity "**Resume**" as resume {
+  **PRIMARY KEY**
+  --
+  * Id : int <<PK, IDENTITY>>
+  ==
+  **FOREIGN KEYS**
+  --
+  * JobSeekerId : int <<FK→JobSeeker.Id, UNIQUE>>
+  ==
+  **FILE DATA** (Step 3)
+  --
+  * FileName : nvarchar(150)
+  * FileUrl : nvarchar(300)
+  * FileType : nvarchar(100)
+  * FileSizeBytes : bigint (max 5MB)
+  ==
+  **AI PARSING**
+  --
+  * ParseStatus : nvarchar(20) (default 'Pending')
+  ProcessedAt : datetime2
+  ==
+  **AUDIT TRAIL**
+  --
+  * CreatedAt : datetime2
+  * UpdatedAt : datetime2
+  ==
+  **INDEXES**
+  --
+  IX_Resume_JobSeekerId_Unique (UNIQUE)
+  ==
+  **BUSINESS RULE**
+  --
+  One CV per JobSeeker
+}
+
+entity "**Experience**" as experience {
+  **PRIMARY KEY**
+  --
+  * Id : int <<PK, IDENTITY>>
+  ==
+  **FOREIGN KEYS**
+  --
+  * JobSeekerId : int <<FK→JobSeeker.Id>>
+  ==
+  **WORK DATA** (Step 4)
+  --
+  * JobTitle : nvarchar(100)
+  * CompanyName : nvarchar(100)
+  * EmploymentType : int (1=Full, 2=Part, 3=Freelance, 4=Intern)
+  * StartDate : datetime2
+  EndDate : datetime2
+  * IsCurrent : bit (default 0)
+  Responsibilities : nvarchar(2000)
+  * DisplayOrder : int
+  ==
+  **AUDIT TRAIL**
+  --
+  * CreatedAt : datetime2
+  * UpdatedAt : datetime2
+  ==
+  **SOFT DELETE**
+  --
+  * IsDeleted : bit (default 0)
+  DeletedAt : datetime2
+  ==
+  **INDEXES**
+  --
+  IX_Experience_JobSeekerId_IsDeleted
+  ==
+  **CONSTRAINTS**
+  --
+  CK_Experience_EndDateAfterStartDate
+}
+
+entity "**Education**" as education {
+  **PRIMARY KEY**
+  --
+  * Id : int <<PK, IDENTITY>>
+  ==
+  **FOREIGN KEYS**
+  --
+  * JobSeekerId : int <<FK→JobSeeker.Id>>
+  ==
+  **EDUCATION DATA** (Step 5)
+  --
+  * Institution : nvarchar(150)
+  * Degree : nvarchar(100)
+  * Major : nvarchar(150)
+  GradeOrGPA : nvarchar(50)
+  * StartDate : datetime2
+  EndDate : datetime2
+  * IsCurrent : bit (default 0)
+  Description : nvarchar(1000)
+  * DisplayOrder : int
+  ==
+  **AUDIT TRAIL**
+  --
+  * CreatedAt : datetime2
+  * UpdatedAt : datetime2
+  ==
+  **SOFT DELETE**
+  --
+  * IsDeleted : bit (default 0)
+  DeletedAt : datetime2
+  ==
+  **INDEXES**
+  --
+  IX_Education_JobSeekerId_IsDeleted
+  ==
+  **CONSTRAINTS**
+  --
+  CK_Education_EndDateAfterStartDate
+}
+
+entity "**SocialAccount**" as social {
+  **PRIMARY KEY**
+  --
+  * Id : int <<PK, IDENTITY>>
+  ==
+  **FOREIGN KEYS**
+  --
+  * JobSeekerId : int <<FK→JobSeeker.Id, UNIQUE>>
+  ==
+  **SOCIAL LINKS** (Step 6)
+  --
+  LinkedIn : nvarchar(300) <<URL>>
+  Github : nvarchar(300) <<URL>>
+  Behance : nvarchar(300) <<URL>>
+  Dribbble : nvarchar(300) <<URL>>
+  PersonalWebsite : nvarchar(300) <<URL>>
+  ==
+  **AUDIT TRAIL**
+  --
+  * CreatedAt : datetime2
+  * UpdatedAt : datetime2
+  ==
+  **INDEXES**
+  --
+  IX_SocialAccounts_JobSeekerId (UNIQUE)
+}
+
+entity "**JobSeekerSkill**" as jobseekerskill {
+  **PRIMARY KEY**
+  --
+  * Id : int <<PK, IDENTITY>>
+  ==
+  **FOREIGN KEYS**
+  --
+  * JobSeekerId : int <<FK→JobSeeker.Id>>
+  * SkillId : int <<FK→Skill.Id>>
+  ==
+  **METADATA**
+  --
+  * Source : nvarchar(20)
+  (Manual | CV_Parsed)
+  ==
+  **INDEXES**
+  --
+  IX_JobSeekerSkills_JobSeekerId_SkillId (UNIQUE)
+  IX_JobSeekerSkills_SkillId
+}
+
+' ====================
+' RECRUITER MODULE
+' ====================
+entity "**Recruiter**" as recruiter {
+  **PRIMARY KEY**
+  --
+  * Id : int <<PK, IDENTITY>>
+  ==
+  **FOREIGN KEYS**
+  --
+  * UserId : int <<FK→User.Id, UNIQUE>>
+  ==
+  **COMPANY DATA**
+  --
+  * CompanyName : nvarchar(150)
+  * CompanySize : nvarchar(50)
+  * Industry : nvarchar(100)
+  * Location : nvarchar(100)
+  Website : nvarchar(300)
+  LinkedIn : nvarchar(300)
+  CompanyDescription : nvarchar(500)
+  LogoUrl : nvarchar(300)
+  ==
+  **AUDIT TRAIL**
+  --
+  * CreatedAt : datetime2
+  * UpdatedAt : datetime2
+  ==
+  **INDEXES**
+  --
+  IX_Recruiters_UserId (UNIQUE)
+}
+
+entity "**Job**" as job {
+  **PRIMARY KEY**
+  --
+  * Id : int <<PK, IDENTITY>>
+  ==
+  **FOREIGN KEYS**
+  --
+  * RecruiterId : int <<FK→Recruiter.Id>>
+  ==
+  **JOB DATA**
+  --
+  * Title : nvarchar(150)
+  * Description : nvarchar(1200)
+  * Requirements : nvarchar(1200)
+  EmploymentType : nvarchar(50)
+  * MinYearsOfExperience : int
+  Location : nvarchar(100)
+  * IsActive : bit (default 1)
+  ==
+  **AUDIT TRAIL**
+  --
+  * PostedAt : datetime2
+  * UpdatedAt : datetime2
+  ==
+  **INDEXES**
+  --
+  IX_Jobs_RecruiterId
+}
+
+entity "**JobSkill**" as jobskill {
+  **PRIMARY KEY**
+  --
+  * Id : int <<PK, IDENTITY>>
+  ==
+  **FOREIGN KEYS**
+  --
+  * JobId : int <<FK→Job.Id>>
+  * SkillId : int <<FK→Skill.Id>>
+  ==
+  **INDEXES**
+  --
+  IX_JobSkills_JobId_SkillId (UNIQUE)
+  IX_JobSkills_SkillId
+}
+
+' ====================
+' AI MATCHING MODULE
+' ====================
+entity "**Recommendation**" as recommendation {
+  **PRIMARY KEY**
+  --
+  * Id : int <<PK, IDENTITY>>
+  ==
+  **FOREIGN KEYS**
+  --
+  * JobId : int <<FK→Job.Id>>
+  * JobSeekerId : int <<FK→JobSeeker.Id>>
+  ==
+  **AI METADATA**
+  --
+  * MatchScore : decimal(5,2)
+  (0.00 - 100.00)
+  * GeneratedAt : datetime2
+  ==
+  **INDEXES**
+  --
+  IX_Recommendations_JobId_JobSeekerId (UNIQUE)
+  IX_Recommendations_JobSeekerId
+  ==
+  **BUSINESS RULE**
+  --
+  One recommendation per Job-JobSeeker pair
+}
+
+' ====================
+' RELATIONSHIPS
+' ====================
+
+' User relationships (Central Hub)
+user ||--|| jobseeker : "1:1\n(CASCADE)"
+user ||--|| recruiter : "1:1\n(CASCADE)"
+user ||--o{ emailverif : "1:N\n(CASCADE)"
+user ||--o{ passreset : "1:N\n(CASCADE)"
+
+' JobSeeker relationships (Profile Hub)
+jobseeker ||--o{ project : "1:N\n(CASCADE)"
+jobseeker ||--o{ experience : "1:N\n(CASCADE)"
+jobseeker ||--o{ education : "1:N\n(CASCADE)"
+jobseeker ||--|| resume : "1:1\n(CASCADE)"
+jobseeker ||--|| social : "1:1\n(CASCADE)"
+jobseeker ||--o{ jobseekerskill : "1:N\n(CASCADE)"
+jobseeker ||--o{ recommendation : "1:N\n(RESTRICT)"
+
+' Reference Data relationships
+country ||--o{ jobseeker : "1:N\n(RESTRICT)"
+jobtitle ||--o{ jobseeker : "1:N\n(RESTRICT)"
+language ||--o{ jobseeker : "1:N (First)\n(RESTRICT)"
+language ||--o{ jobseeker : "1:N (Second)\n(RESTRICT)"
+
+' Recruiter relationships
+recruiter ||--o{ job : "1:N\n(CASCADE)"
+
+' Job relationships
+job ||--o{ jobskill : "1:N\n(CASCADE)"
+job ||--o{ recommendation : "1:N\n(CASCADE)"
+
+' Skill relationships (Many-to-Many)
+skill ||--o{ jobseekerskill : "1:N\n(CASCADE)"
+skill ||--o{ jobskill : "1:N\n(CASCADE)"
+
+' ====================
+' NOTES & ANNOTATIONS
+' ====================
+note right of user
+  **Central Authentication Hub**
+  - Multi-provider auth (Email, Google)
+  - Profile completion tracking (0-6 steps)
+  - Security features (lockout, failed attempts)
+  - Discriminator: AccountType (JobSeeker|Recruiter)
+end note
+
+note right of jobseeker
+  **Profile Wizard (6 Steps)**
+  Step 1: Personal Info
+  Step 2: Projects
+  Step 3: CV Upload
+  Step 4: Experience
+  Step 5: Education
+  Step 6: Social Links
+end note
+
+note right of recommendation
+  **AI Matching Algorithm**
+  - Skill overlap scoring
+  - Experience matching
+  - Job title similarity
+  - Location preference
+  - Match Score: 0.00 - 100.00
+end note
+
+note bottom of education
+  **Soft Delete Pattern**
+  Education, Experience, Project
+  use IsDeleted + DeletedAt for
+  data preservation and audit trail
+end note
+
+note bottom of resume
+  **AI CV Parsing**
+  - Upload PDF/DOCX (max 5MB)
+  - Extract skills automatically
+  - Create JobSeekerSkill records
+  - Source: "CV_Parsed"
+end note
+
+' ====================
+' LEGEND
+' ====================
+legend right
+  **Database Schema Legend**
+  ====
+  **Symbols:**
+  * = NOT NULL (required field)
+  PK = Primary Key
+  FK = Foreign Key
+  UNIQUE = Unique Constraint
+  
+  **Delete Behaviors:**
+  CASCADE = Automatically delete child records
+  RESTRICT = Prevent deletion if referenced
+  
+  **Cardinality:**
+  ||--|| = One-to-One
+  ||--o{ = One-to-Many
+  o{--o{ = Many-to-Many
+  
+  **Data Types:**
+  int = Integer (4 bytes)
+  bigint = Big Integer (8 bytes)
+  bit = Boolean (1 byte)
+  datetime2 = Date/Time (UTC)
+  nvarchar(n) = Unicode string (max n chars)
+  decimal(p,s) = Decimal number (precision, scale)
+  
+  **Database Info:**
+  Name: RecruitmentPlatformDb
+  Type: SQL Server
+  Version: 1.0
+  Date: December 30, 2025
+endlegend
+
+@enduml

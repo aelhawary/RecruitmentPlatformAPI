@@ -1,0 +1,44 @@
+using RecruitmentPlatformAPI.DTOs;
+using RecruitmentPlatformAPI.DTOs.Auth;
+using RecruitmentPlatformAPI.DTOs.Profile;
+using RecruitmentPlatformAPI.DTOs.Reference;
+using RecruitmentPlatformAPI.Models.Core;
+using RecruitmentPlatformAPI.Models.Reference;
+using RecruitmentPlatformAPI.Models.Authentication;
+using RecruitmentPlatformAPI.Models.Assessment;
+using RecruitmentPlatformAPI.Services;
+using RecruitmentPlatformAPI.Services.Interfaces;
+using RecruitmentPlatformAPI.Enums;
+using System.ComponentModel.DataAnnotations;
+
+namespace RecruitmentPlatformAPI.Models.Assessment {
+/// <summary>
+    /// Individual answer for each question in an assessment attempt
+    /// </summary>
+    public class AssessmentAnswer
+    {
+        public int Id { get; set; }
+        
+        [Required]
+        public int AssessmentAttemptId { get; set; }
+        
+        [Required]
+        public int QuestionId { get; set; }
+        
+        /// <summary>
+        /// Selected answer index (0-3)
+        /// </summary>
+        [Required]
+        public int SelectedAnswerIndex { get; set; }
+        
+        [Required]
+        public bool IsCorrect { get; set; }
+        
+        [Required]
+        public DateTime AnsweredAt { get; set; } = DateTime.UtcNow;
+        
+        // Navigation properties
+        public AssessmentAttempt AssessmentAttempt { get; set; } = null!;
+        public AssessmentQuestion Question { get; set; } = null!;
+    }
+}

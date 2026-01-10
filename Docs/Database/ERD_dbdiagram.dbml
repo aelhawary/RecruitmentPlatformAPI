@@ -1,0 +1,441 @@
+// JobIntel Recruitment Platform - Database Schema
+// Generated for dbdiagram.io
+// Date: December 30, 2025
+// Database: RecruitmentPlatformDb (SQL Server)
+
+// ============================================
+// AUTHENTICATION & USER MANAGEMENT
+// ============================================
+
+Table User {
+  Id int [pk, increment, note: 'Primary key']
+  FirstName nvarchar(50) [not null, note: 'User first name']
+  LastName nvarchar(50) [not null, note: 'User last name']
+  Email nvarchar(255) [not null, unique, note: 'Email address (unique identifier)']
+  PasswordHash nvarchar(max) [null, note: 'Bcrypt hashed password (NULL for OAuth users)']
+  AuthProvider int [not null, default: 1, note: '1=Email, 2=Google']
+  ProviderUserId nvarchar(max) [null, note: 'OAuth provider user ID (e.g., Google Sub)']
+  ProfilePictureUrl nvarchar(max) [null, note: 'Profile picture URL']
+  AccountType nvarchar(max) [not null, note: 'JobSeeker or Recruiter']
+  IsEmailVerified bit [not null, default: 0, note: 'Email verification status']
+  IsActive bit [not null, default: 1, note: 'Account active status']
+  CreatedAt datetime2 [not null, default: `getutcdate()`, note: 'Account creation timestamp (UTC)']
+  UpdatedAt datetime2 [not null, default: `getutcdate()`, note: 'Last update timestamp (UTC)']
+  FailedLoginAttempts int [not null, default: 0, note: 'Failed login counter']
+  LastFailedLoginAt datetime2 [null, note: 'Last failed login timestamp']
+  LockoutEnd datetime2 [null, note: 'Account lockout expiration']
+  LockoutReason nvarchar(max) [null, note: 'Reason for lockout']
+  LastSuccessfulLoginAt datetime2 [null, note: 'Last successful login']
+  ProfileCompletionStep int [not null, default: 0, note: 'Wizard step (0-6)']
+  
+  Indexes {
+    Email [unique, name: 'IX_User_Email']
+  }
+}
+
+Table EmailVerification {
+  Id int [pk, increment]
+  UserId int [not null, ref: > User.Id, note: 'User reference']
+  VerificationCode nvarchar(6) [not null, note: '6-digit verification code']
+  CreatedAt datetime2 [not null, default: `getutcdate()`, note: 'Code generation timestamp']
+  ExpiresAt datetime2 [not null, note: 'Code expiration (15 minutes)']
+  IsUsed bit [not null, default: 0, note: 'Code usage flag']
+  
+  Indexes {
+    UserId [name: 'IX_EmailVerifications_UserId']
+  }
+}
+
+Table PasswordReset {
+  Id int [pk, increment]
+  UserId int [not null, ref: > User.Id, note: 'User reference']
+  OtpCode nvarchar(6) [not null, note: '6-digit OTP code']
+  CreatedAt datetime2 [not null, default: `getutcdate()`, note: 'OTP generation timestamp']
+  ExpiresAt datetime2 [not null, note: 'OTP expiration (15 minutes)']
+  IsUsed bit [not null, default: 0, note: 'OTP usage flag']
+  
+  Indexes {
+    UserId [name: 'IX_PasswordResets_UserId']
+  }
+}
+
+// ============================================
+// REFERENCE DATA TABLES
+// ============================================
+
+Table Country {
+  Id int [pk, increment]
+  IsoCode nvarchar(2) [not null, unique, note: 'ISO 3166-1 alpha-2 code']
+  NameEn nvarchar(100) [not null, note: 'Country name (English)']
+  NameAr nvarchar(100) [not null, note: 'Country name (Arabic)']
+  PhoneCode nvarchar(10) [null, note: 'International dialing code']
+  IsActive bit [not null, default: 1]
+  SortOrder int [not null, note: 'Display order']
+  CreatedAt datetime2 [not null, default: `getutcdate()`]
+  
+  Indexes {
+    IsoCode [unique, name: 'IX_Country_IsoCode']
+  }
+  
+  Note: '65 countries with bilingual support (EN/AR)'
+}
+
+Table JobTitle {
+  Id int [pk, increment]
+  Title nvarchar(100) [not null, unique, note: 'Job title name']
+  Category nvarchar(50) [null, note: 'Technology, Design, Marketing, etc.']
+  IsActive bit [not null, default: 1]
+  CreatedAt datetime2 [not null, default: `getutcdate()`]
+  
+  Indexes {
+    Title [unique, name: 'IX_JobTitle_Title']
+  }
+  
+  Note: '90 predefined job titles across 8 categories'
+}
+
+Table Language {
+  Id int [pk, increment]
+  IsoCode nvarchar(3) [not null, unique, note: 'ISO 639-2 code']
+  NameEn nvarchar(100) [not null, note: 'Language name (English)']
+  NameAr nvarchar(100) [not null, note: 'Language name (Arabic)']
+  IsActive bit [not null, default: 1]
+  SortOrder int [not null, note: 'Display order']
+  CreatedAt datetime2 [not null, default: `getutcdate()`]
+  
+  Indexes {
+    IsoCode [unique, name: 'IX_Language_IsoCode']
+  }
+  
+  Note: '50 languages with bilingual support (EN/AR)'
+}
+
+Table Skill {
+  Id int [pk, increment]
+  Name nvarchar(50) [not null, note: 'Skill name (e.g., Python, React)']
+  CreatedAt datetime2 [not null, default: `getutcdate()`]
+  
+  Note: 'Master skills catalog - used by JobSeekers and Jobs'
+}
+
+// ============================================
+// JOB SEEKER MODULE
+// ============================================
+
+Table JobSeeker {
+  Id int [pk, increment]
+  UserId int [not null, unique, ref: - User.Id, note: 'One-to-one with User']
+  JobTitleId int [null, ref: > JobTitle.Id, note: 'Desired job position']
+  YearsOfExperience int [null, note: 'Total years of work experience']
+  CountryId int [null, ref: > Country.Id, note: 'Current location country']
+  City nvarchar(100) [null, note: 'Current city']
+  PhoneNumber nvarchar(20) [null, note: 'Contact phone number']
+  FirstLanguageId int [null, ref: > Language.Id, note: 'Primary language']
+  FirstLanguageProficiency nvarchar(max) [null, note: 'Beginner/Intermediate/Advanced/Native']
+  SecondLanguageId int [null, ref: > Language.Id, note: 'Secondary language']
+  SecondLanguageProficiency nvarchar(max) [null, note: 'Language proficiency level']
+  CreatedAt datetime2 [not null, default: `getutcdate()`]
+  UpdatedAt datetime2 [not null, default: `getutcdate()`]
+  
+  Indexes {
+    UserId [unique, name: 'IX_JobSeekers_UserId']
+    CountryId [name: 'IX_JobSeekers_CountryId']
+    JobTitleId [name: 'IX_JobSeekers_JobTitleId']
+    FirstLanguageId [name: 'IX_JobSeekers_FirstLanguageId']
+    SecondLanguageId [name: 'IX_JobSeekers_SecondLanguageId']
+  }
+  
+  Note: 'Step 1 of Profile Wizard - Personal Information'
+}
+
+Table Project {
+  Id int [pk, increment]
+  JobSeekerId int [not null, ref: > JobSeeker.Id, note: 'Project owner']
+  Title nvarchar(150) [not null, note: 'Project name']
+  TechnologiesUsed nvarchar(300) [null, note: 'Tech stack (comma-separated)']
+  Description nvarchar(1200) [null, note: 'Project overview']
+  ProjectLink nvarchar(300) [null, note: 'Live demo or repository URL']
+  DisplayOrder int [not null, note: 'Custom sort order']
+  CreatedAt datetime2 [not null, default: `getutcdate()`]
+  UpdatedAt datetime2 [not null, default: `getutcdate()`]
+  IsDeleted bit [not null, default: 0, note: 'Soft delete flag']
+  DeletedAt datetime2 [null, note: 'Soft delete timestamp']
+  
+  Indexes {
+    (JobSeekerId, IsDeleted) [name: 'IX_Project_JobSeekerId_IsDeleted']
+  }
+  
+  Note: 'Step 2 of Profile Wizard - Portfolio Projects'
+}
+
+Table Resume {
+  Id int [pk, increment]
+  JobSeekerId int [not null, unique, ref: - JobSeeker.Id, note: 'One-to-one - One CV per job seeker']
+  FileName nvarchar(150) [not null, note: 'Original file name']
+  FileUrl nvarchar(300) [not null, note: 'Storage path or URL']
+  FileType nvarchar(100) [not null, note: 'MIME type (application/pdf, etc.)']
+  FileSizeBytes bigint [not null, note: 'File size in bytes (max 5MB)']
+  ParseStatus nvarchar(20) [not null, default: 'Pending', note: 'Pending/Processed/Failed']
+  ProcessedAt datetime2 [null, note: 'AI parsing timestamp']
+  CreatedAt datetime2 [not null, default: `getutcdate()`, note: 'Upload timestamp']
+  UpdatedAt datetime2 [not null, default: `getutcdate()`, note: 'Replacement timestamp']
+  
+  Indexes {
+    JobSeekerId [unique, name: 'IX_Resume_JobSeekerId_Unique']
+  }
+  
+  Note: 'Step 3 of Profile Wizard - CV Upload with AI Parsing'
+}
+
+Table Experience {
+  Id int [pk, increment]
+  JobSeekerId int [not null, ref: > JobSeeker.Id, note: 'Experience owner']
+  JobTitle nvarchar(100) [not null, note: 'Position title']
+  CompanyName nvarchar(100) [not null, note: 'Employer name']
+  EmploymentType int [not null, note: '1=FullTime, 2=PartTime, 3=Freelance, 4=Internship']
+  StartDate datetime2 [not null, note: 'Job start date']
+  EndDate datetime2 [null, note: 'Job end date (NULL if current)']
+  IsCurrent bit [not null, default: 0, note: 'Currently working flag']
+  Responsibilities nvarchar(2000) [null, note: 'Job duties and achievements']
+  DisplayOrder int [not null, note: 'Custom sort order (most recent first)']
+  CreatedAt datetime2 [not null, default: `getutcdate()`]
+  UpdatedAt datetime2 [not null, default: `getutcdate()`]
+  IsDeleted bit [not null, default: 0, note: 'Soft delete flag']
+  DeletedAt datetime2 [null, note: 'Soft delete timestamp']
+  
+  Indexes {
+    (JobSeekerId, IsDeleted) [name: 'IX_Experience_JobSeekerId_IsDeleted']
+  }
+  
+  Note: '''
+    Step 4 of Profile Wizard - Work Experience History
+    Constraint: CK_Experience_EndDateAfterStartDate (EndDate >= StartDate)
+  '''
+}
+
+Table Education {
+  Id int [pk, increment]
+  JobSeekerId int [not null, ref: > JobSeeker.Id, note: 'Education owner']
+  Institution nvarchar(150) [not null, note: 'University/school name']
+  Degree nvarchar(100) [not null, note: 'Bachelor, Master, PhD, Diploma, etc.']
+  Major nvarchar(150) [not null, note: 'Field of study (Computer Science, etc.)']
+  GradeOrGPA nvarchar(50) [null, note: 'Grade or GPA (flexible format)']
+  StartDate datetime2 [not null, note: 'Education start date']
+  EndDate datetime2 [null, note: 'Graduation date (NULL if current)']
+  IsCurrent bit [not null, default: 0, note: 'Currently studying flag']
+  Description nvarchar(1000) [null, note: 'Activities, achievements, honors']
+  DisplayOrder int [not null, note: 'Custom sort order (most recent first)']
+  CreatedAt datetime2 [not null, default: `getutcdate()`]
+  UpdatedAt datetime2 [not null, default: `getutcdate()`]
+  IsDeleted bit [not null, default: 0, note: 'Soft delete flag']
+  DeletedAt datetime2 [null, note: 'Soft delete timestamp']
+  
+  Indexes {
+    (JobSeekerId, IsDeleted) [name: 'IX_Education_JobSeekerId_IsDeleted']
+  }
+  
+  Note: '''
+    Step 5 of Profile Wizard - Education History
+    Constraint: CK_Education_EndDateAfterStartDate (EndDate >= StartDate)
+  '''
+}
+
+Table SocialAccount {
+  Id int [pk, increment]
+  JobSeekerId int [not null, unique, ref: - JobSeeker.Id, note: 'One-to-one with JobSeeker']
+  LinkedIn nvarchar(300) [null, note: 'LinkedIn profile URL']
+  Github nvarchar(300) [null, note: 'GitHub profile URL']
+  Behance nvarchar(300) [null, note: 'Behance portfolio URL']
+  Dribbble nvarchar(300) [null, note: 'Dribbble portfolio URL']
+  PersonalWebsite nvarchar(300) [null, note: 'Personal portfolio/website URL']
+  CreatedAt datetime2 [not null, default: `getutcdate()`]
+  UpdatedAt datetime2 [not null, default: `getutcdate()`]
+  
+  Indexes {
+    JobSeekerId [unique, name: 'IX_SocialAccounts_JobSeekerId']
+  }
+  
+  Note: 'Step 6 of Profile Wizard - Social Links (all optional, URL validated)'
+}
+
+Table JobSeekerSkill {
+  Id int [pk, increment]
+  JobSeekerId int [not null, ref: > JobSeeker.Id, note: 'Job seeker reference']
+  SkillId int [not null, ref: > Skill.Id, note: 'Skill reference']
+  Source nvarchar(20) [not null, note: 'Manual or CV_Parsed']
+  
+  Indexes {
+    (JobSeekerId, SkillId) [unique, name: 'IX_JobSeekerSkills_JobSeekerId_SkillId']
+    SkillId [name: 'IX_JobSeekerSkills_SkillId']
+  }
+  
+  Note: 'Many-to-Many: JobSeeker ↔ Skill (with source tracking)'
+}
+
+// ============================================
+// RECRUITER MODULE
+// ============================================
+
+Table Recruiter {
+  Id int [pk, increment]
+  UserId int [not null, unique, ref: - User.Id, note: 'One-to-one with User']
+  CompanyName nvarchar(150) [not null, note: 'Company name']
+  CompanySize nvarchar(50) [not null, note: 'Company size category']
+  Industry nvarchar(100) [not null, note: 'Industry/sector']
+  Location nvarchar(100) [not null, note: 'Company headquarters location']
+  Website nvarchar(300) [null, note: 'Company website URL']
+  LinkedIn nvarchar(300) [null, note: 'Company LinkedIn page']
+  CompanyDescription nvarchar(500) [null, note: 'Brief company overview']
+  LogoUrl nvarchar(300) [null, note: 'Company logo URL (branding)']
+  CreatedAt datetime2 [not null, default: `getutcdate()`]
+  UpdatedAt datetime2 [not null, default: `getutcdate()`]
+  
+  Indexes {
+    UserId [unique, name: 'IX_Recruiters_UserId']
+  }
+  
+  Note: 'Recruiter/Company profile - separate from User.ProfilePictureUrl'
+}
+
+Table Job {
+  Id int [pk, increment]
+  RecruiterId int [not null, ref: > Recruiter.Id, note: 'Job owner']
+  Title nvarchar(150) [not null, note: 'Job title/position']
+  Description nvarchar(1200) [not null, note: 'Job description and duties']
+  Requirements nvarchar(1200) [not null, note: 'Qualifications and requirements']
+  EmploymentType nvarchar(50) [null, note: 'Full-time, Part-time, etc.']
+  MinYearsOfExperience int [not null, note: 'Minimum required experience']
+  Location nvarchar(100) [null, note: 'Job location (city/country)']
+  PostedAt datetime2 [not null, default: `getutcdate()`, note: 'Job posting timestamp']
+  UpdatedAt datetime2 [not null, default: `getutcdate()`, note: 'Last update timestamp']
+  IsActive bit [not null, default: 1, note: 'Job listing active status']
+  
+  Indexes {
+    RecruiterId [name: 'IX_Jobs_RecruiterId']
+  }
+  
+  Note: 'Job postings created by recruiters'
+}
+
+Table JobSkill {
+  Id int [pk, increment]
+  JobId int [not null, ref: > Job.Id, note: 'Job reference']
+  SkillId int [not null, ref: > Skill.Id, note: 'Required skill reference']
+  
+  Indexes {
+    (JobId, SkillId) [unique, name: 'IX_JobSkills_JobId_SkillId']
+    SkillId [name: 'IX_JobSkills_SkillId']
+  }
+  
+  Note: 'Many-to-Many: Job ↔ Skill (required skills per job)'
+}
+
+// ============================================
+// AI MATCHING MODULE
+// ============================================
+
+Table Recommendation {
+  Id int [pk, increment]
+  JobId int [not null, ref: > Job.Id, note: 'Recommended job']
+  JobSeekerId int [not null, ref: > JobSeeker.Id, note: 'Target job seeker']
+  MatchScore decimal(5,2) [not null, note: 'AI match score (0.00 - 100.00)']
+  GeneratedAt datetime2 [not null, default: `getutcdate()`, note: 'Recommendation timestamp']
+  
+  Indexes {
+    (JobId, JobSeekerId) [unique, name: 'IX_Recommendations_JobId_JobSeekerId']
+    JobSeekerId [name: 'IX_Recommendations_JobSeekerId']
+  }
+  
+  Note: '''
+    Many-to-Many: Job ↔ JobSeeker (with AI metadata)
+    AI Algorithm: Skill overlap + Experience + Job title + Location matching
+    Delete Behavior: CASCADE on Job, RESTRICT on JobSeeker (avoid cycle)
+  '''
+}
+
+// ============================================
+// RELATIONSHIP COMMENTS
+// ============================================
+
+// User Relationships (Central Hub)
+// User --< EmailVerification (1:N, CASCADE)
+// User --< PasswordReset (1:N, CASCADE)
+// User --- JobSeeker (1:1, CASCADE)
+// User --- Recruiter (1:1, CASCADE)
+
+// JobSeeker Relationships (Profile Hub)
+// JobSeeker --< Project (1:N, CASCADE)
+// JobSeeker --< Experience (1:N, CASCADE)
+// JobSeeker --< Education (1:N, CASCADE)
+// JobSeeker --- Resume (1:1, CASCADE)
+// JobSeeker --- SocialAccount (1:1, CASCADE)
+// JobSeeker --< JobSeekerSkill (1:N, CASCADE)
+// JobSeeker --< Recommendation (1:N, RESTRICT to avoid cascade cycle)
+
+// Reference Data Relationships
+// Country --< JobSeeker (1:N, RESTRICT - preserve reference data)
+// JobTitle --< JobSeeker (1:N, RESTRICT - preserve reference data)
+// Language --< JobSeeker (1:N First Language, RESTRICT)
+// Language --< JobSeeker (1:N Second Language, RESTRICT)
+
+// Recruiter Relationships
+// Recruiter --< Job (1:N, CASCADE)
+
+// Job Relationships
+// Job --< JobSkill (1:N, CASCADE)
+// Job --< Recommendation (1:N, CASCADE)
+
+// Skill Relationships (Many-to-Many)
+// Skill --< JobSeekerSkill (1:N, CASCADE)
+// Skill --< JobSkill (1:N, CASCADE)
+
+// ============================================
+// ADDITIONAL NOTES
+// ============================================
+
+// Profile Wizard Flow (6 Steps):
+// Step 0: Registration (User table)
+// Step 1: Personal Info (JobSeeker table)
+// Step 2: Projects (Project table - multiple entries)
+// Step 3: CV Upload (Resume table - AI parsing)
+// Step 4: Experience (Experience table - work history)
+// Step 5: Education (Education table - degrees)
+// Step 6: Social Links (SocialAccount table)
+
+// Soft Delete Pattern:
+// Tables: Education, Experience, Project
+// Fields: IsDeleted (bit), DeletedAt (datetime2)
+// Purpose: Data preservation, audit trail, undo functionality
+
+// Audit Trail Pattern:
+// All tables include CreatedAt and UpdatedAt (datetime2, UTC)
+// Purpose: Track record lifecycle, compliance, debugging
+
+// Enum Storage:
+// AuthProvider: int (1=Email, 2=Google)
+// EmploymentType: int (1=FullTime, 2=PartTime, 3=Freelance, 4=Internship)
+// AccountType: string (JobSeeker, Recruiter)
+// LanguageProficiency: string (Beginner, Intermediate, Advanced, Native)
+
+// Security Features:
+// - Bcrypt password hashing (PasswordHash can be NULL for OAuth)
+// - Email verification (EmailVerification table)
+// - Password reset (PasswordReset table with OTP)
+// - Account lockout (FailedLoginAttempts, LockoutEnd)
+// - JWT token-based API authentication
+
+// AI Recommendation Algorithm:
+// 1. Skill Matching: Compare JobSeekerSkill vs JobSkill
+// 2. Experience Matching: Compare YearsOfExperience vs MinYearsOfExperience
+// 3. Job Title Matching: Semantic similarity scoring
+// 4. Location Matching: Preference for local candidates
+// 5. Calculate weighted MatchScore (0.00 - 100.00)
+// 6. Store in Recommendation table with GeneratedAt timestamp
+
+// Database Info:
+// Name: RecruitmentPlatformDb
+// Type: SQL Server
+// Version: 1.0
+// Date: December 30, 2025
+// Total Tables: 18
+// Total Seed Data: 90 job titles, 65 countries, 50 languages
