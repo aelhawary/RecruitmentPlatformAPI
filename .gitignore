@@ -5,6 +5,7 @@ x64/
 x86/
 [Aa][Rr][Mm]/
 [Aa][Rr][Mm]64/
+build/
 bld/
 [Bb]in/
 [Oo]bj/
@@ -19,12 +20,19 @@ bld/
 *.sln.docstates
 *.csproj.user
 
+# Visual Studio profiler
+*.psess
+*.vsp
+*.vspx
+*.sap
+
 # Test Results
 [Tt]est[Rr]esult*/
 [Bb]uild[Ll]og.*
 *.trx
 *.coverage
 *.coveragexml
+test-results*.json
 
 # NuGet Packages
 *.nupkg
@@ -34,18 +42,7 @@ bld/
 
 # User-specific files
 *.rsuser
-*.suo
-*.user
-*.userosscache
-*.sln.docstates
-
-# Windows image file caches
-Thumbs.db
-ehthumbs.db
-Desktop.ini
-
-# Folder config file
-$RECYCLE.BIN/
+*.userprefs
 
 # VS Code
 .vscode/
@@ -54,22 +51,12 @@ $RECYCLE.BIN/
 !.vscode/launch.json
 !.vscode/extensions.json
 
-# Rider
+# JetBrains Rider / ReSharper
 .idea/
 *.sln.iml
-
-# User-specific files (MonoDevelop/Xamarin Studio)
-*.userprefs
-
-# Build results
-[Dd]ebug/
-[Rr]elease/
-x64/
-x86/
-build/
-bld/
-[Bb]in/
-[Oo]bj/
+_ReSharper*/
+*.[Rr]e[Ss]harper
+*.DotSettings.user
 
 # Entity Framework Migrations (keep tracked)
 # Migrations/ - DO NOT IGNORE, these are version controlled
@@ -85,6 +72,11 @@ appsettings.Production.json
 .env.local
 .env.*.local
 
+# Python
+.venv/
+__pycache__/
+*.pyc
+
 # SQL Server files
 *.mdf
 *.ldf
@@ -97,47 +89,17 @@ appsettings.Production.json
 *.sqlite
 *.sqlite3
 
-# Test results
-TestResults/
-*.trx
-test-results*.json
-
-# HTTP test files (optional - uncomment if you want to ignore)
-# *.http
-
-# macOS
+# OS files
 .DS_Store
-
-# Windows
 Thumbs.db
 ehthumbs.db
-
-# JetBrains Rider
-.idea/
-*.sln.iml
-_ReSharper*/
-*.[Rr]e[Ss]harper
-*.DotSettings.user
-
-# Visual Studio profiler
-*.psess
-*.vsp
-*.vspx
-*.sap
-
-# ReSharper
-_ReSharper*/
-*.[Rr]e[Ss]harper
-*.DotSettings.user
+Desktop.ini
+$RECYCLE.BIN/
 
 # NCrunch
 _NCrunch_*
 .*crunch*.local.xml
 nCrunchTemp_*
-
-# MightyMoose
-*.mm.*
-AutoTest.Net/
 
 # Backup files
 *.bak
@@ -147,8 +109,6 @@ AutoTest.Net/
 # Logs
 logs/
 *.log
-npm-debug.log*
-yarn-debug.log*
-yarn-error.log*
+
 # Uploaded files (user content)
 Uploads/

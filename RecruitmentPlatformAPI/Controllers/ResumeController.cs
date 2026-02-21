@@ -2,8 +2,8 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System.Security.Claims;
 using RecruitmentPlatformAPI.DTOs.Common;
-using RecruitmentPlatformAPI.DTOs.Profile;
-using RecruitmentPlatformAPI.Services.Profile;
+using RecruitmentPlatformAPI.DTOs.JobSeeker;
+using RecruitmentPlatformAPI.Services.JobSeeker;
 
 namespace RecruitmentPlatformAPI.Controllers
 {
@@ -11,7 +11,7 @@ namespace RecruitmentPlatformAPI.Controllers
     /// API endpoints for managing resume/CV uploads (Step 3 of Profile Wizard)
     /// </summary>
     [ApiController]
-    [Route("api/[controller]")]
+    [Route("api/jobseeker/resume")]
     [Produces("application/json")]
     public class ResumeController : ControllerBase
     {

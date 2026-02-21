@@ -7,6 +7,9 @@ using RecruitmentPlatformAPI.DTOs.Auth;
 using RecruitmentPlatformAPI.Enums;
 using RecruitmentPlatformAPI.Models.Identity;
 using RecruitmentPlatformAPI.Models.JobSeeker;
+using RecruitmentPlatformAPI.Models.Recruiter;
+using JobSeekerEntity = RecruitmentPlatformAPI.Models.JobSeeker.JobSeeker;
+using RecruiterEntity = RecruitmentPlatformAPI.Models.Recruiter.Recruiter;
 
 namespace RecruitmentPlatformAPI.Services.Auth
 {
@@ -90,7 +93,7 @@ namespace RecruitmentPlatformAPI.Services.Auth
                 // Create role-specific record
                 if (isJobSeeker)
                 {
-                    var jobSeeker = new JobSeeker
+                    var jobSeeker = new JobSeekerEntity
                     {
                         UserId = user.Id,
                         // Foreign key IDs will be set during profile completion wizard
@@ -110,7 +113,7 @@ namespace RecruitmentPlatformAPI.Services.Auth
                 }
                 else
                 {
-                    var recruiter = new Recruiter
+                    var recruiter = new RecruiterEntity
                     {
                         UserId = user.Id,
                         CompanyName = "Not Specified", // To be updated in profile completion
@@ -536,7 +539,7 @@ namespace RecruitmentPlatformAPI.Services.Auth
                 // Create corresponding profile
                 if (accountType == AccountType.JobSeeker)
                 {
-                    var jobSeeker = new JobSeeker
+                    var jobSeeker = new JobSeekerEntity
                     {
                         UserId = newUser.Id,
                         // Foreign key IDs will be set during profile completion wizard
@@ -556,7 +559,7 @@ namespace RecruitmentPlatformAPI.Services.Auth
                 }
                 else
                 {
-                    var recruiter = new Recruiter
+                    var recruiter = new RecruiterEntity
                     {
                         UserId = newUser.Id,
                         CompanyName = "Not Specified", // To be updated in profile completion

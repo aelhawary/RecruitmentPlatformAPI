@@ -5,7 +5,8 @@ using System.Text;
 using RecruitmentPlatformAPI.Configuration;
 using RecruitmentPlatformAPI.Data;
 using RecruitmentPlatformAPI.Services.Auth;
-using RecruitmentPlatformAPI.Services.Profile;
+using RecruitmentPlatformAPI.Services.JobSeeker;
+using RecruitmentPlatformAPI.Services.Recruiter;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -101,7 +102,8 @@ builder.Services.AddAuthentication(options =>
 builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddScoped<IEmailService, EmailService>();
 builder.Services.AddScoped<ITokenService, TokenService>();
-builder.Services.AddScoped<IProfileService, ProfileService>();
+builder.Services.AddScoped<IJobSeekerService, JobSeekerService>();
+builder.Services.AddScoped<IRecruiterService, RecruiterService>();
 builder.Services.AddScoped<IProjectService, ProjectService>();
 builder.Services.AddScoped<ISocialAccountService, SocialAccountService>();
 builder.Services.AddScoped<IResumeService, ResumeService>();
