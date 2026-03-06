@@ -1,7 +1,7 @@
 # Swagger Documentation Improvements
 
-**Date:** December 30, 2025  
-**Version:** 1.4.0
+**Date:** December 30, 2025 (updated February 2026)  
+**Version:** 1.5.1
 
 ## Overview
 
@@ -22,8 +22,13 @@ public class ControllerName : ControllerBase
 
 **Applied to:**
 - ✅ AuthController
-- ✅ ProfileController
+- ✅ JobSeekerController
 - ✅ ProjectsController
+- ✅ ExperienceController
+- ✅ EducationController
+- ✅ ResumeController
+- ✅ SocialAccountsController
+- ✅ RecruiterController
 - ✅ LocationsController
 
 ### 2. **Standardized Documentation Format**
@@ -84,7 +89,7 @@ Added `Swashbuckle.AspNetCore.Annotations` package for enhanced Swagger capabili
 
 ## Controller-by-Controller Breakdown
 
-### AuthController (10 endpoints)
+### AuthController (9 endpoints)
 
 | Endpoint | Method | Improvements |
 |----------|--------|--------------|
@@ -94,7 +99,7 @@ Added `Swashbuckle.AspNetCore.Annotations` package for enhanced Swagger capabili
 | `/api/auth/verify-email` | POST | Clean parameter descriptions |
 | `/api/auth/resend-verification` | POST | Standardized documentation |
 | `/api/auth/forgot-password` | POST | Email enumeration protection note |
-| `/api/auth/verify-reset-otp` | POST | Token validity description |
+| `/api/auth/validate-reset-token` | POST | Token validity description |
 | `/api/auth/reset-password` | POST | Complete flow documentation |
 | `/api/auth/me` | GET | Simplified JWT extraction description |
 
@@ -104,28 +109,30 @@ Added `Swashbuckle.AspNetCore.Annotations` package for enhanced Swagger capabili
 - Security considerations documented
 - JWT token requirements clear
 
-### ProfileController (4 endpoints)
+### JobSeekerController (9 endpoints)
 
 | Endpoint | Method | Improvements |
 |----------|--------|--------------|
-| `/api/profile/personal-info` | POST | Foreign key ID requirements clear |
-| `/api/profile/personal-info` | GET | Localization parameter documented |
-| `/api/profile/wizard-status` | GET | 6-step wizard flow described |
-| `/api/profile/job-titles` | GET | Category information included |
+| `/api/jobseeker/personal-info` | POST | Foreign key ID requirements clear |
+| `/api/jobseeker/personal-info` | GET | Localization parameter documented |
+| `/api/jobseeker/wizard-status` | GET | 6-step wizard flow described |
+| `/api/jobseeker/job-titles` | GET | Category information included |
+| `/api/jobseeker/picture` | POST/GET/DELETE | Profile picture management |
 
 **Key Features:**
 - Wizard step progression documented
 - Localization support clear
 - Reference data structure explained
+- Profile picture upload/download/delete
 
 ### ProjectsController (4 endpoints)
 
 | Endpoint | Method | Improvements |
 |----------|--------|--------------|
-| `/api/profile/projects` | POST | Auto-ordering behavior documented |
-| `/api/profile/projects/{id}` | PUT | Ownership requirements clear |
-| `/api/profile/projects/{id}` | DELETE | Soft delete + reordering explained |
-| `/api/profile/projects` | GET | Active/deleted filtering documented |
+| `/api/jobseeker/projects` | POST | Auto-ordering behavior documented |
+| `/api/jobseeker/projects/{id}` | PUT | Ownership requirements clear |
+| `/api/jobseeker/projects/{id}` | DELETE | Soft delete + reordering explained |
+| `/api/jobseeker/projects` | GET | Active/deleted filtering documented |
 
 **Key Features:**
 - Display order management clear
@@ -176,8 +183,13 @@ When you run the application and navigate to `/swagger`, you'll see:
 
 2. **Organized Endpoints by Controller**
    - Auth (Authentication endpoints)
-   - Profile (Profile wizard endpoints)
-   - Projects (Project management)
+   - JobSeeker (Profile wizard, personal info, picture)
+   - Projects (Portfolio project CRUD)
+   - Experience (Work history CRUD)
+   - Education (Education CRUD)
+   - Resume (CV upload/download)
+   - SocialAccounts (Social links)
+   - Recruiter (Company info, picture)
    - Locations (Reference data)
 
 3. **Detailed Endpoint Documentation**

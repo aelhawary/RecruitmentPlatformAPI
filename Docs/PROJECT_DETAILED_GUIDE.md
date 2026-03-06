@@ -53,23 +53,25 @@ RecruitmentPlatformAPI/
 │   │   ├── IEmailService.cs
 │   │   └── EmailService.cs      # OTP emails
 │   │
-│   └── Profile/
-│       ├── IJobSeekerService.cs
-│       ├── JobSeekerService.cs
+│   ├── JobSeeker/
+│   │   ├── IJobSeekerService.cs
+│   │   ├── JobSeekerService.cs
+│   │   ├── IExperienceService.cs
+│   │   ├── ExperienceService.cs
+│   │   ├── IEducationService.cs
+│   │   ├── EducationService.cs
+│   │   ├── IProjectService.cs
+│   │   ├── ProjectService.cs
+│   │   ├── IResumeService.cs
+│   │   ├── ResumeService.cs
+│   │   ├── IProfilePictureService.cs
+│   │   ├── ProfilePictureService.cs
+│   │   ├── ISocialAccountService.cs
+│   │   └── SocialAccountService.cs
+│   │
+│   └── Recruiter/
 │       ├── IRecruiterService.cs
-│       ├── RecruiterService.cs
-│       ├── IExperienceService.cs
-│       ├── ExperienceService.cs
-│       ├── IEducationService.cs
-│       ├── EducationService.cs
-│       ├── IProjectService.cs
-│       ├── ProjectService.cs
-│       ├── IResumeService.cs
-│       ├── ResumeService.cs
-│       ├── IProfilePictureService.cs
-│       ├── ProfilePictureService.cs
-│       ├── ISocialAccountService.cs
-│       └── SocialAccountService.cs
+│       └── RecruiterService.cs
 │
 ├── Models/                      # Database entities (tables)
 │   ├── Identity/
@@ -94,12 +96,13 @@ RecruitmentPlatformAPI/
 │   │   ├── LoginDto.cs
 │   │   ├── AuthResponseDto.cs
 │   │   └── ...
-│   ├── Profile/
+│   ├── JobSeeker/
 │   │   ├── PersonalInfoRequestDto.cs
 │   │   ├── PersonalInfoDto.cs
-│   │   ├── RecruiterProfileDtos.cs
 │   │   ├── ExperienceDtos.cs
 │   │   └── ...
+│   ├── Recruiter/
+│   │   └── RecruiterProfileDtos.cs
 │   └── Common/
 │       ├── ApiResponse.cs       # Standard success wrapper
 │       └── ApiErrorResponse.cs  # Standard error wrapper
@@ -212,7 +215,7 @@ We chose **NOT** to use Repository pattern. Here's why:
 7. Server sends OTP via email
 8. User receives email, sends OTP to verify-email endpoint
 9. Server verifies OTP → sets IsEmailVerified = true
-10. Server returns JWT token
+10. User must now explicitly call /login to get JWT token
 ```
 
 ### Login Flow
@@ -252,11 +255,11 @@ private int GetCurrentUserId()
 ```
 
 ### Security Features
-- **Password hashing**: BCrypt with work factor 11
+- **Password hashing**: BCrypt with cost factor 12
 - **Account lockout**: 5 failed attempts → 15 min lockout
-- **OTP expiration**: 10 minutes
+- **OTP expiration**: 15 minutes
 - **JWT expiration**: 24 hours
-- **Rate limiting**: Configured per endpoint
+- **Constant-time comparison**: For verification codes (timing attack prevention)
 
 ---
 

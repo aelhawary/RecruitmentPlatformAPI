@@ -1,388 +1,253 @@
-# JobIntel Recruitment Platform - Backend API
+# JobIntel Recruitment Platform — Backend API
 
-**Version:** 1.4.0  
-**Last Updated:** January 1, 2026  
-**Framework:** ASP.NET Core 9.0 (C#)  
-**Database:** SQL Server (Entity Framework Core)
-
----
-
-## 🎯 Project Overview
-
-JobIntel is a modern recruitment platform designed to connect job seekers with recruiters. This repository contains the backend REST API built with ASP.NET Core, featuring comprehensive authentication, profile management, and a multi-step profile completion wizard.
-
-### Current Implementation Status
-
-**✅ Completed Features:**
-- Complete authentication system (9 endpoints)
-- Profile wizard Steps 1-2 (8 endpoints)
-- 18 database tables with proper relationships
-- Comprehensive API documentation
-
-**🔄 Next Phase:**
-- Profile wizard Steps 3-5 (CV Upload, Work Experience, Education)
-- Job posting and management
-- AI-powered job recommendations
-
-### Key Features
-
-✅ **Dual Authentication System**
-- Email/Password authentication with email verification
-- Google OAuth 2.0 integration
-- JWT token-based authorization
-- Account lockout after 5 failed login attempts (15-min lockout)
-- Password reset with OTP verification (6-digit code, 15-min expiry)
-
-✅ **Profile Completion Wizard** (6 Steps)
-- **Step 1: Personal Information** ✅ 
-  - Job title, years of experience, location (country/city)
-  - Languages (first + optional second with proficiency levels)
-  - Auto-advances wizard progress tracking
-- **Step 2: Projects Portfolio** ✅
-  - CRUD operations with auto-ordering
-  - Soft delete with automatic reordering
-  - Project title, description, technologies, live links
-- **Step 3: CV Upload** 📅 Planned
-- **Step 4: Work Experience** 📅 Planned
-- **Step 5: Education** 📅 Planned
-- **Step 6: Social Links** ✅
-  - Add/update/remove social media links (completely optional)
-  - LinkedIn, GitHub, Behance, Dribbble, Personal Website
-  - Users can skip or add any combination of links
-
-✅ **Security Features**
-- BCrypt password hashing (work factor 12)
-- JWT token authentication (24-hour expiration)
-- Account lockout protection
-- Email verification required before login
-- CORS configuration
-- Comprehensive input validation
-
-✅ **Database Architecture**
-- **18 tables:** User, JobSeeker, Recruiter, Project, Experience, Education, Resume, SocialAccount, Job, Recommendation, Skill, Country, Language, JobTitle, EmailVerification, PasswordReset, JobSeekerSkill, JobSkill
-- Entity Framework Core with Code-First migrations
-- Reference tables with bilingual support (English/Arabic)
-- **Seeded data:** 90 job titles, 65 countries, 50 languages
-- Soft delete pattern for data retention
+**Version:** 1.5.1
+**Last Updated:** February 2026
+**Framework:** ASP.NET Core 9.0 (C# 12)
+**Database:** SQL Server (Entity Framework Core 9.0)
 
 ---
 
-## 🚀 Quick Start
+## Project Overview
+
+JobIntel is a recruitment platform backend that connects **Job Seekers** with **Recruiters**. This repository contains the REST API powering authentication, profile management, and (soon) job posting.
+
+### Current Status
+
+| Module | Status | Endpoints |
+|--------|--------|-----------|
+| Authentication (Email + Google OAuth) | ✅ Complete | 9 |
+| Job Seeker Profile Wizard (6 steps) | ✅ Complete | 35 |
+| Recruiter Profile | ✅ Complete | 10 |
+| Reference Data (Countries, Languages) | ✅ Complete | 2 |
+| **Job Posting & Management** | **🔜 Next** | — |
+| AI Matching / Recommendations | 📋 Planned | — |
+| Assessments / Notifications / Admin | 📋 Planned | — |
+
+**Total:** 56 API endpoints across 9 controllers
+
+---
+
+## Quick Start
 
 ### Prerequisites
-- .NET 9.0 SDK or later
+
+- .NET 9.0 SDK
 - SQL Server (LocalDB or full instance)
-- Visual Studio 2022 / VS Code / Rider
-- Gmail account (for email notifications)
+- Gmail account with App Password (for email notifications)
 
-### Installation
+### Setup
 
-1. **Clone the repository**
-   ```bash
-   git clone <repository-url>
-   cd Backend-2
-   ```
+```bash
+git clone <repository-url>
+cd Backend-2/RecruitmentPlatformAPI
+dotnet restore
+```
 
-2. **Configure appsettings.json**
-   ```bash
-   cd RecruitmentPlatformAPI
-   cp appsettings.json appsettings.Development.json
-   ```
+Create `appsettings.Development.json` (gitignored):
 
-3. **Update connection string and secrets** in `appsettings.Development.json`:
-   ```json
-   {
-     "ConnectionStrings": {
-       "DefaultConnection": "Server=(localdb)\\mssqllocaldb;Database=RecruitmentPlatformDb;Trusted_Connection=True;"
-     },
-     "JwtSettings": {
-       "SecretKey": "your-256-bit-secret-key-here",
-       "Issuer": "JobIntelAPI",
-       "Audience": "JobIntelClient",
-       "ExpirationMinutes": 1440
-     },
-     "EmailSettings": {
-       "SmtpServer": "smtp.gmail.com",
-       "SmtpPort": 587,
-       "SenderEmail": "your-email@gmail.com",
-       "SenderName": "JobIntel Platform",
-       "Username": "your-email@gmail.com",
-       "Password": "your-app-password"
-     },
-     "GoogleOAuth": {
-       "ClientId": "your-google-client-id.apps.googleusercontent.com"
-     }
-   }
-   ```
+```json
+{
+  "ConnectionStrings": {
+    "DefaultConnection": "Server=(localdb)\\mssqllocaldb;Database=RecruitmentPlatformDb;Trusted_Connection=True;MultipleActiveResultSets=true"
+  },
+  "JwtSettings": {
+    "SecretKey": "YourSuperSecretKeyThatIsAtLeast32CharsLong12345",
+    "Issuer": "RecruitmentPlatformAPI",
+    "Audience": "RecruitmentPlatformClient",
+    "ExpirationMinutes": 1440
+  },
+  "EmailSettings": {
+    "SmtpServer": "smtp.gmail.com",
+    "SmtpPort": 587,
+    "SenderEmail": "your-email@gmail.com",
+    "SenderName": "JobIntel Platform",
+    "Username": "your-email@gmail.com",
+    "Password": "your-gmail-app-password",
+    "EnableSsl": true,
+    "FrontendUrl": "http://localhost:3000"
+  },
+  "GoogleOAuth": {
+    "ClientId": "your-google-client-id.apps.googleusercontent.com"
+  }
+}
+```
 
-4. **Apply database migrations**
-   ```bash
-   dotnet ef database update
-   ```
+```bash
+dotnet ef database update
+dotnet run
+```
 
-5. **Run the application**
-   ```bash
-   dotnet run
-   ```
+Swagger UI: `http://localhost:5217/swagger`
 
-6. **Access Swagger UI**
-   ```
-   https://localhost:<port>/swagger
-   ```
+> **Teammate?** See [Docs/Guides/TEAMMATE_SETUP_GUIDE.md](Docs/Guides/TEAMMATE_SETUP_GUIDE.md) for a streamlined 10-minute setup.
 
 ---
 
-## 📁 Project Structure
+## Project Structure
 
 ```
 Backend-2/
-├── .gitignore                      # Git ignore rules
-├── .vs/                            # Visual Studio cache (ignored)
-├── api-schema.json                 # OpenAPI schema
-├── RecruitmentPlatform.sln         # Visual Studio solution
+├── PROJECT_CONTEXT.md                  # Single source of truth for AI/dev context
+├── README.md                           # This file
+├── RecruitmentPlatform.sln
 │
-├── Docs/                           # 📚 Complete Documentation
-│   ├── README.md                   # Documentation index
-│   ├── CHANGELOG.md                # Version history
-│   ├── SETUP_GUIDE.md              # Setup instructions
-│   ├── API_REFERENCE.md            # Complete API documentation
-│   ├── REACT_INTEGRATION_GUIDE.md  # Frontend integration guide
-│   ├── AUTH_API_INTEGRATION.md     # Auth endpoints reference
-│   ├── GOOGLE_AUTH_GUIDE.md        # Google OAuth setup
-│   ├── EMAIL_SETUP_GUIDE.md        # Email configuration
-│   ├── SWAGGER_IMPROVEMENTS.md     # Swagger documentation guide
-│   ├── API_DOCUMENTATION_STANDARDS.md # API standards
-│   ├── ERD_DIAGRAM.md              # Entity Relationship Diagram
-│   ├── ERD_dbdiagram.dbml          # ERD in DBML format
-│   ├── ERD_PlantUML.puml           # ERD in PlantUML format
-│   └── DOCS_GUIDE.md               # Documentation guide
+├── Docs/
+│   ├── CHANGELOG.md                    # Version history
+│   ├── PROJECT_OVERVIEW.md             # Quick onboarding for new team members
+│   ├── PROJECT_DETAILED_GUIDE.md       # Deep technical reference
+│   ├── API/                            # API documentation
+│   │   ├── API_REFERENCE.md
+│   │   ├── AUTH_API_INTEGRATION.md     # Auth handoff for frontend team
+│   │   ├── API_DOCUMENTATION_STANDARDS.md
+│   │   └── SWAGGER_IMPROVEMENTS.md
+│   ├── Database/                       # ERD (Markdown, DBML, PlantUML)
+│   ├── Diagrams/                       # Class diagram (Mermaid)
+│   └── Guides/                         # Setup, email, Google OAuth, Jobs module
 │
-└── RecruitmentPlatformAPI/         # Main API Project
-    ├── Program.cs                  # Application entry point
-    ├── appsettings.json            # Configuration (template)
-    ├── appsettings.Development.json # Dev config (gitignored)
-    │
-    ├── Controllers/                # API Controllers
-    │   ├── AuthController.cs       # Authentication endpoints
-    │   ├── ProfileController.cs    # Profile wizard endpoints
-    │   ├── ProjectsController.cs   # Projects CRUD
-    │   └── LocationsController.cs  # Reference data
-    │
-    ├── Services/                   # Business Logic Layer
-    │   ├── AuthService.cs          # Authentication logic
-    │   ├── ProfileService.cs       # Profile management
-    │   ├── ProjectService.cs       # Projects management
-    │   ├── EmailService.cs         # Email notifications
-    │   └── TokenService.cs         # JWT token generation
-    │
-    ├── Models/                     # Entity Models
-    │   ├── User.cs                 # User entity
-    │   ├── JobSeeker.cs            # Job seeker profile
-    │   ├── Recruiter.cs            # Recruiter profile
-    │   ├── Project.cs              # Project entity
-    │   ├── JobTitle.cs             # Reference table
-    │   ├── Country.cs              # Reference table
-    │   └── Language.cs             # Reference table
-    │
-    ├── DTOs/                       # Data Transfer Objects
-    │   ├── AuthResponseDto.cs      # Auth responses
-    │   ├── PersonalInfoDto.cs      # Profile DTOs
-    │   └── ProjectDtos.cs          # Project DTOs
-    │
-    ├── Data/                       # Database Context
-    │   ├── AppDbContext.cs         # EF Core DbContext
-    │   └── Migrations/             # EF Core migrations
-    │
-    ├── Enums/                      # Enumerations
-    │   ├── AccountType.cs          # JobSeeker/Recruiter
-    │   ├── AuthProvider.cs         # Email/Google
-    │   └── LanguageProficiency.cs  # Language levels
-    │
-    └── Configuration/              # Configuration Models
-        ├── JwtSettings.cs
-        └── EmailSettings.cs
+└── RecruitmentPlatformAPI/
+    ├── Program.cs                      # DI, JWT, CORS, JSON config, middleware
+    ├── Controllers/                    # 9 controllers
+    │   ├── AuthController.cs           # 9 endpoints — login, register, OAuth, verify, reset
+    │   ├── JobSeekerController.cs      # 9 endpoints — personal info, wizard, profile picture
+    │   ├── ProjectsController.cs       # 4 endpoints — CRUD with soft delete & auto-reorder
+    │   ├── ExperienceController.cs     # 7 endpoints — CRUD with soft delete & reorder
+    │   ├── EducationController.cs      # 7 endpoints — CRUD with soft delete & reorder
+    │   ├── ResumeController.cs         # 5 endpoints — PDF upload/download with validation
+    │   ├── SocialAccountsController.cs # 3 endpoints — upsert/get/delete social links
+    │   ├── RecruiterController.cs      # 10 endpoints — company info, wizard, profile picture
+    │   └── LocationsController.cs      # 2 endpoints — countries, languages (bilingual)
+    ├── Services/
+    │   ├── Auth/                        # AuthService, EmailService, TokenService
+    │   ├── JobSeeker/                   # 7 services (profile, projects, experience, etc.)
+    │   └── Recruiter/                   # RecruiterService
+    ├── Models/
+    │   ├── Identity/                    # User, EmailVerification, PasswordReset
+    │   ├── JobSeeker/                   # JobSeeker, Project, Experience, Education, etc.
+    │   ├── Recruiter/                   # Recruiter
+    │   ├── Jobs/                        # Job, JobSkill, Recommendation (DB ready)
+    │   ├── Assessment/                  # AssessmentQuestion, Attempt, Answer (DB ready)
+    │   └── Reference/                   # Country, Language, JobTitle, Skill
+    ├── DTOs/
+    │   ├── Auth/                        # Register, Login, Google, Password Reset DTOs
+    │   ├── Common/                      # ApiResponse<T>, ApiErrorResponse, CountryDto, LanguageDto
+    │   ├── JobSeeker/                   # Personal info, projects, experience, education, etc.
+    │   └── Recruiter/                   # RecruiterDtos
+    ├── Enums/                           # AccountType, AuthProvider, EmploymentType, etc.
+    ├── Configuration/                   # JwtSettings, EmailSettings, etc.
+    ├── Data/
+    │   ├── AppDbContext.cs              # 19 DbSets, Fluent API config
+    │   ├── Migrations/                  # Single InitialCreate migration
+    │   └── Seed/                        # 90 job titles, 65 countries, 50 languages
+    └── Uploads/                         # ProfilePictures/, Resumes/ (gitignored content)
 ```
 
 ---
 
-## 🔌 API Endpoints
+## API Endpoints
 
-### Authentication (9 endpoints)
-- `POST /api/auth/register` - Register new user
-- `POST /api/auth/login` - Login with credentials
-- `POST /api/auth/google` - Google OAuth login
-- `POST /api/auth/verify-email` - Verify email with code
-- `POST /api/auth/resend-verification` - Resend verification code
-- `POST /api/auth/forgot-password` - Request password reset OTP
-- `POST /api/auth/verify-reset-otp` - Verify OTP and get reset token
-- `POST /api/auth/reset-password` - Reset password with token
-- `GET /api/auth/me` - Get current user info (requires auth)
+### Authentication (`/api/auth/`) — 9 endpoints
 
-### Profile Wizard - Step 1: Personal Information (4 endpoints)
-- `POST /api/profile/personal-info` - Save personal information
-- `GET /api/profile/personal-info?lang=en` - Get personal info with localization
-- `GET /api/profile/wizard-status` - Get wizard completion status
-- `GET /api/profile/job-titles` - Get job titles list
+| Method | Route | Auth | Description |
+|--------|-------|------|-------------|
+| POST | `/register` | No | Register (JobSeeker or Recruiter) |
+| POST | `/login` | No | Login with email/password |
+| POST | `/google` | No | Login/register with Google OAuth |
+| POST | `/verify-email` | No | Verify email with 6-digit code |
+| POST | `/resend-verification` | No | Resend verification code |
+| POST | `/forgot-password` | No | Request password reset link |
+| POST | `/validate-reset-token` | No | Check if reset token is valid |
+| POST | `/reset-password` | No | Reset password with token |
+| GET | `/me` | ✅ | Get current user from JWT |
 
-### Profile Wizard - Step 2: Projects Portfolio (4 endpoints)
-- `POST /api/profile/projects` - Add new project
-- `GET /api/profile/projects` - Get all user's projects
-- `PUT /api/profile/projects/{id}` - Update project
-- `DELETE /api/profile/projects/{id}` - Delete project (soft delete)
+### Job Seeker Profile (`/api/jobseeker/`) — 35 endpoints
 
-### Profile Wizard - Step 6: Social Links (3 endpoints)
-- `PUT /api/profile/social-accounts` - Add or update social links (optional)
-- `GET /api/profile/social-accounts` - Get current social links
-- `DELETE /api/profile/social-accounts` - Delete all social links
+| Group | Endpoints | Description |
+|-------|-----------|-------------|
+| Personal Info (Step 1) | 4 | Save/get info, wizard status, job titles |
+| Profile Picture | 5 | Upload, get info, download, delete, exists |
+| Projects (Step 2) | 4 | CRUD with auto-reorder & soft delete |
+| Resume (Step 3) | 5 | PDF upload, download, delete, info, exists |
+| Experience (Step 4) | 7 | CRUD with reorder & soft delete |
+| Education (Step 5) | 7 | CRUD with reorder & soft delete |
+| Social Links (Step 6) | 3 | Upsert, get, delete |
 
-### Reference Data (2 endpoints)
-- `GET /api/locations/countries?lang=en` - Get countries (localized)
-- `GET /api/locations/languages?lang=en` - Get languages (localized)
+### Recruiter (`/api/recruiter/`) — 10 endpoints
 
-**Total:** 22 API endpoints  
-**Full API documentation:** See [Docs/API_REFERENCE.md](Docs/API_REFERENCE.md)
+| Group | Endpoints | Description |
+|-------|-----------|-------------|
+| Company Info | 3 | Save/get info, wizard status |
+| Dropdowns | 2 | Industries, company sizes |
+| Profile Picture | 5 | Upload, get info, download, delete, exists |
 
----
+### Reference Data (`/api/locations/`) — 2 endpoints
 
-## 📚 Documentation
-
-All documentation is located in the `Docs/` folder:
-
-| Document | Description |
-|----------|-------------|
-| **[README.md](Docs/README.md)** | Documentation index and quick links |
-| **[SETUP_GUIDE.md](Docs/SETUP_GUIDE.md)** | Complete setup instructions |
-| **[API_REFERENCE.md](Docs/API_REFERENCE.md)** | All API endpoints with examples |
-| **[REACT_INTEGRATION_GUIDE.md](Docs/REACT_INTEGRATION_GUIDE.md)** | Frontend integration guide |
-| **[GOOGLE_AUTH_GUIDE.md](Docs/GOOGLE_AUTH_GUIDE.md)** | Google OAuth setup |
-| **[EMAIL_SETUP_GUIDE.md](Docs/EMAIL_SETUP_GUIDE.md)** | Email configuration |
-| **[CHANGELOG.md](Docs/CHANGELOG.md)** | Version history |
-
-👉 **Frontend developers start here:** [REACT_INTEGRATION_GUIDE.md](Docs/REACT_INTEGRATION_GUIDE.md)
+| Method | Route | Description |
+|--------|-------|-------------|
+| GET | `/countries?lang=en` | Countries (bilingual EN/AR) |
+| GET | `/languages?lang=en` | Languages (bilingual EN/AR) |
 
 ---
 
-## 🛠️ Technology Stack
+## Technology Stack
 
-- **Framework:** ASP.NET Core 9.0
-- **Language:** C# 12.0
-- **ORM:** Entity Framework Core 9.0
-- **Database:** SQL Server
-- **Authentication:** JWT + Google OAuth 2.0
-- **Password Hashing:** BCrypt.Net
-- **Email:** SMTP (Gmail)
-- **API Documentation:** Swagger/OpenAPI
-
-### NuGet Packages
-- `Microsoft.EntityFrameworkCore.SqlServer`
-- `Microsoft.EntityFrameworkCore.Tools`
-- `Microsoft.AspNetCore.Authentication.JwtBearer`
-- `BCrypt.Net-Next`
-- `Google.Apis.Auth`
-- `Swashbuckle.AspNetCore`
+| Component | Package | Version |
+|-----------|---------|---------|
+| Framework | ASP.NET Core | 9.0 |
+| ORM | Microsoft.EntityFrameworkCore.SqlServer | 9.0.10 |
+| Auth | Microsoft.AspNetCore.Authentication.JwtBearer | 9.0.10 |
+| JWT | System.IdentityModel.Tokens.Jwt | 8.14.0 |
+| Password | BCrypt.Net-Next | 4.0.3 |
+| Email | MailKit | 4.14.1 |
+| Google OAuth | Google.Apis.Auth | 1.73.0 |
+| API Docs | Swashbuckle.AspNetCore | 6.5.0 |
 
 ---
 
-## 🗄️ Database Schema
+## Database
 
-### Core Tables
-- **User** - Base user account (shared by job seekers and recruiters)
-- **JobSeeker** - Job seeker profile with FK to User
-- **Recruiter** - Recruiter profile with FK to User
-- **Project** - Job seeker projects with soft delete
-- **Experience** - Work experience records
-- **Education** - Education records
-- **Resume** - CV uploads
+**19 tables** across 6 categories:
 
-### Reference Tables
-- **JobTitle** - 90 predefined job titles
-- **Country** - 65 countries with English/Arabic names
-- **Language** - 50 languages with English/Arabic names
+| Category | Tables |
+|----------|--------|
+| Identity | User, EmailVerification, PasswordReset |
+| Job Seeker | JobSeeker, Project, Experience, Education, Resume, SocialAccount, JobSeekerSkill |
+| Recruiter | Recruiter |
+| Jobs | Job, JobSkill, Recommendation |
+| Assessment | AssessmentQuestion, AssessmentAttempt, AssessmentAnswer |
+| Reference | Country, Language, JobTitle, Skill |
 
-### Supporting Tables
-- **EmailVerification** - Email verification codes
-- **PasswordReset** - Password reset OTPs
-- **Skill** - Skills catalog
-- **Job** - Job postings (recruiter side)
-
-**Full schema documentation:** See [Docs/database-documentation.md](Docs/database-documentation.md)
+Seed data: **90** job titles, **65** countries, **50** languages (bilingual EN/AR).
 
 ---
 
-## 🔐 Security
+## Security
 
-- ✅ BCrypt password hashing (cost factor: 12)
-- ✅ JWT tokens with configurable expiration
-- ✅ Email verification required for login
-- ✅ Account lockout after 5 failed login attempts (15 minutes)
-- ✅ Password reset with time-limited OTP
-- ✅ CORS configured for localhost (update for production)
-- ✅ Input validation on all endpoints
-- ✅ Enum-based type safety for critical fields
-- ✅ No sensitive data in error messages
+- BCrypt password hashing (cost factor 12)
+- JWT Bearer tokens (HMAC-SHA256, 24-hour expiry)
+- Email verification required before login
+- Account lockout: 5 failed attempts → 15-minute lock
+- Password reset via secure cryptographic token (not OTP)
+- Constant-time comparison for verification codes
+- CORS configured for localhost (update for production)
 
 ---
 
-## 📈 Current Status & Roadmap
+## Documentation
 
-### ✅ Completed (v1.4.0)
-- Authentication system (Email + Google OAuth)
-- Profile Wizard Step 1: Personal Information
-- Profile Wizard Step 2: Projects Management
-- Reference data with bilingual support
-- Comprehensive documentation
-- Security features
-
-### 🚧 In Progress
-- Profile Wizard Step 3: CV Upload
-- Profile Wizard Step 4: Work Experience
-- Profile Wizard Step 5: Education
-- Profile Wizard Step 6: Social Links
-
-### 📋 Planned Features
-- Resume parsing
-- Skills recommendation system
-- Job posting and matching
-- Application tracking
-- Messaging system
-- Notification system
-- Admin panel
-- Analytics dashboard
+| Document | Purpose |
+|----------|---------|
+| [PROJECT_CONTEXT.md](PROJECT_CONTEXT.md) | Single source of truth for all development |
+| [Docs/Guides/TEAMMATE_SETUP_GUIDE.md](Docs/Guides/TEAMMATE_SETUP_GUIDE.md) | Quick 10-min setup for new developers |
+| [Docs/Guides/SETUP_GUIDE.md](Docs/Guides/SETUP_GUIDE.md) | Detailed setup with troubleshooting |
+| [Docs/API/AUTH_API_INTEGRATION.md](Docs/API/AUTH_API_INTEGRATION.md) | Auth handoff guide for frontend team |
+| [Docs/API/API_REFERENCE.md](Docs/API/API_REFERENCE.md) | Complete endpoint reference |
+| [Docs/Database/ERD_DIAGRAM.md](Docs/Database/ERD_DIAGRAM.md) | Entity Relationship Diagram |
+| [Docs/Diagrams/CLASS_DIAGRAM.md](Docs/Diagrams/CLASS_DIAGRAM.md) | Full class diagram (Mermaid) |
+| [Docs/CHANGELOG.md](Docs/CHANGELOG.md) | Version history |
+| [Docs/Guides/JOBS_MODULE_IMPLEMENTATION_GUIDE.md](Docs/Guides/JOBS_MODULE_IMPLEMENTATION_GUIDE.md) | Next step: Jobs module guide |
 
 ---
 
-## 🤝 Contributing
+## Next Step
 
-This is a graduation project. Contributions are welcome via pull requests.
-
-### Development Workflow
-1. Create a feature branch
-2. Make your changes
-3. Run `dotnet build` to verify
-4. Update relevant documentation
-5. Submit a pull request
-
----
-
-## 📝 License
-
-[Specify your license here]
-
----
-
-## 👥 Team
-
-[Add team member names and roles]
-
----
-
-## 📞 Support
-
-For questions or issues:
-- Check the [Documentation](Docs/README.md)
-- Review the [CHANGELOG](Docs/CHANGELOG.md)
-- Open an issue on GitHub
-
----
-
-**Happy Coding! 🚀**
+The immediate next implementation is the **Job Management module** (recruiter job posting CRUD). See [JOBS_MODULE_IMPLEMENTATION_GUIDE.md](Docs/Guides/JOBS_MODULE_IMPLEMENTATION_GUIDE.md) for the complete plan.

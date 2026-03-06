@@ -110,6 +110,7 @@ builder.Services.AddScoped<IResumeService, ResumeService>();
 builder.Services.AddScoped<IProfilePictureService, ProfilePictureService>();
 builder.Services.AddScoped<IExperienceService, ExperienceService>();
 builder.Services.AddScoped<IEducationService, EducationService>();
+builder.Services.AddScoped<IJobService, JobService>();
 
 // Swagger/OpenAPI
 builder.Services.AddEndpointsApiExplorer();

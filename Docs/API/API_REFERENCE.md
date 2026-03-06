@@ -1,8 +1,8 @@
 # API Reference
 
 **Base URL:** `http://localhost:5217`  
-**API Version:** 1.3.0  
-**Last Updated:** January 30, 2026
+**API Version:** 1.5.1  
+**Last Updated:** February 2026
 
 ---
 
@@ -19,7 +19,7 @@
    - [Verify Email](#4-verify-email)
    - [Resend Verification Code](#5-resend-verification-code)
    - [Forgot Password](#6-forgot-password)
-   - [Verify Reset OTP](#7-verify-reset-otp)
+   - [Validate Reset Token](#7-validate-reset-token)
    - [Reset Password](#8-reset-password)
    - [Get Current User](#9-get-current-user)
 6. [Profile Wizard Endpoints](#profile-wizard-endpoints)
@@ -486,51 +486,42 @@ interface UserInfo {
 
 ---
 
-### 7. Verify Reset OTP
+### 7. Validate Reset Token
 
-**Endpoint:** `POST /api/auth/verify-reset-otp`  
+**Endpoint:** `POST /api/auth/validate-reset-token`  
 **Authentication:** Not required  
-**Description:** Verify password reset OTP and receive reset token
+**Description:** Check if a password reset token is still valid
 
 #### Request Body
 
 ```json
 {
-  "email": "john.doe@example.com",
-  "otpCode": "123456"
+  "token": "abc123...64-char-url-safe-base64-token"
 }
 ```
 
 **Field Requirements:**
-- `email` (required): Registered email address
-- `otpCode` (required): Exactly 6 digits
+- `token` (required): The 64-character cryptographic token from the reset link
 
 #### Success Response (200 OK)
 
 ```json
 {
   "success": true,
-  "message": "OTP verified successfully. You can now reset your password.",
-  "resetToken": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+  "message": "Token is valid. You can proceed with password reset."
 }
 ```
-
-**Important:** Store `resetToken` for password reset. It expires in 5 minutes.
 
 #### Error Response (400 Bad Request)
 
 ```json
 {
   "success": false,
-  "message": "Invalid OTP code. Please check and try again."
+  "message": "Invalid or expired reset token."
 }
 ```
 
-**Common Error Messages:**
-- "User not found."
-- "No valid OTP found. Please request a new one."
-- "Invalid OTP code..."
-- "OTP has expired. Please request a new one."
+**Important:** The reset token is sent as a clickable link in the user's email (e.g., `{FrontendUrl}/reset-password?token={token}`). The frontend should extract the token from the URL and call this endpoint to verify it before showing the reset form.
 
 ---
 
@@ -538,22 +529,20 @@ interface UserInfo {
 
 **Endpoint:** `POST /api/auth/reset-password`  
 **Authentication:** Not required  
-**Description:** Reset password using reset token from OTP verification
+**Description:** Reset password using the token from the password reset email link
 
 #### Request Body
 
 ```json
 {
-  "email": "john.doe@example.com",
-  "resetToken": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
+  "token": "abc123...64-char-url-safe-base64-token",
   "newPassword": "NewSecurePass123!",
   "confirmNewPassword": "NewSecurePass123!"
 }
 ```
 
 **Field Requirements:**
-- `email` (required): Must match email from token
-- `resetToken` (required): Token from verify-reset-otp endpoint
+- `token` (required): The 64-character cryptographic token from the reset link
 - `newPassword` (required, 8-100 chars): Must contain uppercase, lowercase, and digit
 - `confirmNewPassword` (required): Must match `newPassword`
 

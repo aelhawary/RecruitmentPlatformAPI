@@ -15,8 +15,8 @@ namespace RecruitmentPlatformAPI.Models.Jobs
         public string Description { get; set; } = string.Empty;
         [Required, MaxLength(1200)]
         public string Requirements { get; set; } = string.Empty;
-        [MaxLength(50)]
-        public string? EmploymentType { get; set; }
+        [Required]
+        public EmploymentType EmploymentType { get; set; }
         [Required]
         public int MinYearsOfExperience { get; set; }
         [MaxLength(100)]

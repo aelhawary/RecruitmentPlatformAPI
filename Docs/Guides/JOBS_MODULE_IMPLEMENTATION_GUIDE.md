@@ -26,22 +26,20 @@
 
 ## 1. Business Flow
 
-> **Important:** JobSeekers do NOT browse, see, or apply to jobs. The platform uses a silent AI matching system.
+```
+Recruiter creates job posting
+       │
+       ▼
+Job stored in database with required skills
+       │
+       ▼
+Recruiter can view/edit/delete their own jobs
+       │
+       ▼
+Recruiter can activate/deactivate jobs
+```
 
-```
-Recruiter posts job
-       │
-       ▼
-AI engine generates Recommendation records
-(compares each JobSeeker's profile vs job requirements → MatchScore)
-       │
-       ▼
-Recruiter views ranked candidate list for their job
-(GET /api/jobs/{id}/candidates  →  shows JobSeekers ordered by MatchScore)
-       │
-       ▼
-Recruiter contacts promising candidates (out of scope for this module)
-```
+> **Note:** This module focuses on job posting management only. The AI matching system and candidate recommendations will be implemented in a separate module.
 
 ### Key business rules
 
@@ -49,11 +47,9 @@ Recruiter contacts promising candidates (out of scope for this module)
 |------|--------|
 | Who can create/edit/delete jobs? | Only authenticated **Recruiter** accounts |
 | Who can view jobs? | Only the **owning Recruiter** (their own postings) |
-| Who can see candidates? | Only the **owning Recruiter** |
-| JobSeekers | Cannot see jobs and are unaware they appear as candidates |
 | Skills | A job can require 0–15 skills from the `Skills` table |
 | Soft deactivate | `IsActive = false` hides a job instead of hard-deleting it |
-| Ownership guard | A recruiter can only edit/delete/view candidates for **their own** jobs |
+| Ownership guard | A recruiter can only edit/delete **their own** jobs |
 
 ---
 
@@ -71,7 +67,7 @@ Models/
 ├── Jobs/          # ← Job-related business entities (CORRECT location)
 │   ├── Job.cs
 │   ├── JobSkill.cs
-│   └── Recommendation.cs
+│   └── Recommendation.cs  (for future AI matching — not used in this module)
 ├── Reference/     # ← True lookup/seed data only
 │   ├── Country.cs
 │   ├── JobTitle.cs
@@ -87,8 +83,8 @@ Models/
 ```csharp
 public DbSet<Job> Jobs { get; set; }
 public DbSet<JobSkill> JobSkills { get; set; }
-public DbSet<Recommendation> Recommendations { get; set; }
 public DbSet<Skill> Skills { get; set; }
+// Note: Recommendations table exists but is not used in this module
 ```
 
 All table relationships (cascade rules, indexes, precision constraints) are already in `AppDbContext.OnModelCreating`. **No migration is needed.**
@@ -111,22 +107,6 @@ public class Job
     public DateTime UpdatedAt { get; set; }
     public bool IsActive { get; set; } = true;
     public RecruiterEntity Recruiter { get; set; }  // navigation
-}
-```
-
-### Existing `Recommendation` model (for reference)
-
-```csharp
-// Models/Jobs/Recommendation.cs — namespace RecruitmentPlatformAPI.Models.Jobs
-public class Recommendation
-{
-    public int Id { get; set; }
-    public int JobId { get; set; }           // FK → Job
-    public int JobSeekerId { get; set; }     // FK → JobSeeker
-    public decimal MatchScore { get; set; }  // 0.00 – 100.00  (precision 5,2)
-    public DateTime GeneratedAt { get; set; }
-    public Job Job { get; set; }
-    public JobSeeker JobSeeker { get; set; }
 }
 ```
 
@@ -226,7 +206,7 @@ namespace RecruitmentPlatformAPI.DTOs.Recruiter
         public DateTime UpdatedAt { get; set; }
         /// <summary>Whether the listing is currently active</summary>
         public bool IsActive { get; set; }
-        /// <summary>Number of AI-matched candidates (from Recommendation table)</summary>
+        /// <summary>Number of matched candidates (reserved for future AI matching module; always 0 for now)</summary>
         public int CandidateCount { get; set; }
         /// <summary>Required skills for this job</summary>
         public List<JobSkillDto> Skills { get; set; } = new();
@@ -335,9 +315,6 @@ namespace RecruitmentPlatformAPI.Services.Recruiter
         Task<bool> DeleteJobAsync(int userId, int jobId);
         Task<JobListResponseDto> GetMyJobsAsync(int userId, int page = 1, int pageSize = 10, bool? isActive = null);
         Task<JobResponseDto?> GetJobByIdAsync(int userId, int jobId);
-
-        // ── Candidate matching (authenticated Recruiter) ──
-        Task<JobCandidateListResponseDto?> GetCandidatesAsync(int userId, int jobId, int page = 1, int pageSize = 10);
 
         // ── Reference data (no auth needed) ──
         Task<List<SkillOptionDto>> GetSkillsAsync(string? search = null);
@@ -578,42 +555,6 @@ namespace RecruitmentPlatformAPI.Services.Recruiter
         }
 
         // ─────────────────────────────────────
-        // CANDIDATE MATCHING
-        // ─────────────────────────────────────
-
-        public async Task<JobCandidateListResponseDto?> GetCandidatesAsync(int userId, int jobId, int page = 1, int pageSize = 10)
-        {
-            // Verify ownership first
-            var job = await GetOwnedJobAsync(userId, jobId);
-            if (job == null) return null;
-
-            var query = _context.Recommendations.Where(r => r.JobId == jobId);
-            var totalCount = await query.CountAsync();
-
-            var recommendations = await query
-                .OrderByDescending(r => r.MatchScore)   // Best matches first
-                .Skip((page - 1) * pageSize)
-                .Take(pageSize)
-                .ToListAsync();
-
-            var candidates = new List<JobCandidateDto>();
-            foreach (var rec in recommendations)
-            {
-                var candidate = await BuildCandidateDto(rec);
-                if (candidate != null) candidates.Add(candidate);
-            }
-
-            return new JobCandidateListResponseDto
-            {
-                Candidates = candidates,
-                TotalCount = totalCount,
-                Page = page,
-                PageSize = pageSize,
-                TotalPages = (int)Math.Ceiling(totalCount / (double)pageSize)
-            };
-        }
-
-        // ─────────────────────────────────────
         // REFERENCE DATA
         // ─────────────────────────────────────
 
@@ -655,7 +596,7 @@ namespace RecruitmentPlatformAPI.Services.Recruiter
         }
 
         /// <summary>
-        /// Builds a full JobResponseDto including skills and candidate count.
+        /// Builds a full JobResponseDto including skills.
         /// </summary>
         private async Task<JobResponseDto> BuildJobResponseDto(Job job)
         {
@@ -664,9 +605,6 @@ namespace RecruitmentPlatformAPI.Services.Recruiter
                 .Join(_context.Skills, js => js.SkillId, s => s.Id,
                     (js, s) => new JobSkillDto { Id = s.Id, Name = s.Name })
                 .ToListAsync();
-
-            var candidateCount = await _context.Recommendations
-                .CountAsync(r => r.JobId == job.Id);
 
             return new JobResponseDto
             {
@@ -680,67 +618,13 @@ namespace RecruitmentPlatformAPI.Services.Recruiter
                 PostedAt = job.PostedAt,
                 UpdatedAt = job.UpdatedAt,
                 IsActive = job.IsActive,
-                CandidateCount = candidateCount,
-                Skills = skills
-            };
-        }
-
-        /// <summary>
-        /// Builds a JobCandidateDto from a Recommendation record by loading the
-        /// JobSeeker's profile, user row, skills, and location data.
-        /// </summary>
-        private async Task<JobCandidateDto?> BuildCandidateDto(Recommendation rec)
-        {
-            var jobSeeker = await _context.JobSeekers.FindAsync(rec.JobSeekerId);
-            if (jobSeeker == null) return null;
-
-            var user = await _context.Users.FindAsync(jobSeeker.UserId);
-            if (user == null) return null;
-
-            // Candidate's skills (names only)
-            var skills = await _context.JobSeekerSkills
-                .Where(js => js.JobSeekerId == rec.JobSeekerId)
-                .Join(_context.Skills, js => js.SkillId, s => s.Id, (js, s) => s.Name)
-                .ToListAsync();
-
-            // Country name
-            string? countryName = null;
-            if (jobSeeker.CountryId.HasValue)
-            {
-                var country = await _context.Countries.FindAsync(jobSeeker.CountryId);
-                countryName = country?.Name;
-            }
-
-            // Job title name
-            string? jobTitleName = null;
-            if (jobSeeker.JobTitleId.HasValue)
-            {
-                var jobTitle = await _context.JobTitles.FindAsync(jobSeeker.JobTitleId);
-                jobTitleName = jobTitle?.Title;
-            }
-
-            return new JobCandidateDto
-            {
-                JobSeekerId = rec.JobSeekerId,
-                MatchScore = rec.MatchScore,
-                GeneratedAt = rec.GeneratedAt,
-                FullName = $"{user.FirstName} {user.LastName}".Trim(),
-                ProfilePictureUrl = user.ProfilePictureUrl,
-                JobTitle = jobTitleName,
-                YearsOfExperience = jobSeeker.YearsOfExperience,
-                City = jobSeeker.City,
-                Country = countryName,
-                Bio = jobSeeker.Bio,
+                CandidateCount = 0,  // Reserved for future AI matching module
                 Skills = skills
             };
         }
     }
 }
-```
-
-> **Note on `BuildCandidateDto`:** This method makes several individual DB calls (N+1 pattern). For a paginated list of ≤10–50 candidates per page this is acceptable. If you need to optimize later, switch to a single query using `Include().ThenInclude()`.
-
----
+```---
 
 ## 6. Controller
 
@@ -757,7 +641,7 @@ using RecruitmentPlatformAPI.Services.Recruiter;
 namespace RecruitmentPlatformAPI.Controllers
 {
     /// <summary>
-    /// Job postings and AI candidate matching — Recruiter only
+    /// Job postings management — Recruiter only
     /// </summary>
     [ApiController]
     [Route("api/jobs")]
@@ -949,40 +833,6 @@ namespace RecruitmentPlatformAPI.Controllers
             return Ok(new ApiResponse<string>("Job deleted successfully"));
         }
 
-        // ══════════════════════════════════════════
-        // CANDIDATE MATCHING  (Recruiter only)
-        // ══════════════════════════════════════════
-
-        /// <summary>
-        /// Get the AI-matched candidate list for a job, ranked by MatchScore descending.
-        /// Only the owning Recruiter can call this. JobSeekers are unaware they appear here.
-        /// </summary>
-        /// <param name="id">Job ID</param>
-        /// <param name="page">Page number (default: 1)</param>
-        /// <param name="pageSize">Candidates per page (default: 10, max: 50)</param>
-        [HttpGet("{id}/candidates")]
-        [Authorize]
-        [ProducesResponseType(typeof(ApiResponse<JobCandidateListResponseDto>), StatusCodes.Status200OK)]
-        [ProducesResponseType(typeof(ApiErrorResponse), StatusCodes.Status404NotFound)]
-        [ProducesResponseType(typeof(ApiErrorResponse), StatusCodes.Status401Unauthorized)]
-        public async Task<IActionResult> GetCandidates(
-            int id,
-            [FromQuery] int page = 1,
-            [FromQuery] int pageSize = 10)
-        {
-            var userId = GetCurrentUserId();
-            if (userId == 0) return Unauthorized(new ApiErrorResponse("User not authenticated"));
-
-            page = Math.Max(1, page);
-            pageSize = Math.Clamp(pageSize, 1, 50);
-
-            var result = await _jobService.GetCandidatesAsync(userId, id, page, pageSize);
-            if (result == null)
-                return NotFound(new ApiErrorResponse("Job not found or you don't have permission to view candidates"));
-
-            return Ok(new ApiResponse<JobCandidateListResponseDto>(result));
-        }
-
         // ─── Helper ───
         private int GetCurrentUserId()
         {
@@ -1029,10 +879,9 @@ The `Jobs`, `JobSkills`, `Skills`, and `Recommendations` tables already exist in
 | `GET` | `/api/jobs/{id}` | ✅ Recruiter | Get one of own jobs |
 | `POST` | `/api/jobs` | ✅ Recruiter | Create a new job posting |
 | `PUT` | `/api/jobs/{id}` | ✅ Recruiter | Update own job |
-| `PATCH` | `/api/jobs/{id}/deactivate` | ✅ Recruiter | Soft-hide job (stops AI matching) |
+| `PATCH` | `/api/jobs/{id}/deactivate` | ✅ Recruiter | Soft-hide job |
 | `PATCH` | `/api/jobs/{id}/reactivate` | ✅ Recruiter | Re-enable a deactivated job |
 | `DELETE` | `/api/jobs/{id}` | ✅ Recruiter | Permanently delete job |
-| `GET` | `/api/jobs/{id}/candidates` | ✅ Recruiter | View AI-matched candidates, ranked by MatchScore |
 
 ---
 
@@ -1048,7 +897,7 @@ The `Jobs`, `JobSkills`, `Skills`, and `Recommendations` tables already exist in
 | Location | Optional, max 100 chars |
 | SkillIds | Optional, max 15 items; each ID must exist in the `Skills` table |
 | Account type | Only `AccountType.Recruiter` accounts can use these endpoints |
-| Ownership | A recruiter can only manage and view candidates for **their own** jobs |
+| Ownership | A recruiter can only manage **their own** jobs |
 
 ---
 
@@ -1077,11 +926,6 @@ For all recruiter endpoints: register a Recruiter account → log in → paste t
 - [ ] `PATCH /api/jobs/{id}/deactivate` → `200`, `IsActive` becomes `false`
 - [ ] `PATCH /api/jobs/{id}/reactivate` → `200`, `IsActive` becomes `true`
 - [ ] `DELETE /api/jobs/{id}` → `200`, job no longer in `GET /api/jobs`
-
-### Candidates (Recruiter token required)
-- [ ] `GET /api/jobs/{id}/candidates` — returns empty list when no AI data exists yet
-- [ ] `GET /api/jobs/{id}/candidates` — another recruiter's job → `404`
-- [ ] `GET /api/jobs/{id}/candidates?page=1&pageSize=5` — pagination params accepted
 
 ---
 

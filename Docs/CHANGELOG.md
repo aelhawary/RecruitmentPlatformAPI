@@ -4,6 +4,36 @@ All notable changes to the JobIntel Recruitment Platform API will be documented 
 
 ---
 
+## [1.6.0] - February 27, 2026
+
+### New Feature — Jobs Management Module 🏢
+
+**Complete CRUD for recruiter job postings (8 endpoints):**
+- ✅ `GET /api/jobs` — Paginated list of own jobs with optional isActive filter
+- ✅ `GET /api/jobs/{id}` — Get a specific job (own jobs only)
+- ✅ `POST /api/jobs` — Create a new job posting with optional skills (0–15)
+- ✅ `PUT /api/jobs/{id}` — Update an existing job (own jobs only)
+- ✅ `PATCH /api/jobs/{id}/deactivate` — Soft-deactivate a job
+- ✅ `PATCH /api/jobs/{id}/reactivate` — Reactivate a deactivated job
+- ✅ `DELETE /api/jobs/{id}` — Permanently delete a job (hard delete + cascade)
+- ✅ `GET /api/jobs/skills` — Skills lookup with optional search (no auth required)
+
+**New Files:**
+- `DTOs/Recruiter/JobDtos.cs` — JobRequestDto, JobResponseDto, JobListResponseDto, JobSkillDto, SkillOptionDto
+- `Services/Recruiter/IJobService.cs` — Service interface (8 methods)
+- `Services/Recruiter/JobService.cs` — Full service implementation with ownership guard, skill validation, pagination
+- `Controllers/JobsController.cs` — API controller with Authorize per-action, recruiter role check
+
+### Improvements 🔧
+
+- ✅ **EmploymentType enum migration:** Changed from `string?` to strongly-typed `EmploymentType` enum across Job model, DTOs, and service. Stored as string in DB via `.HasConversion<string>()`. Auto-validated by model binding.
+- ✅ **Skill seed data:** Added `Data/Seed/SkillSeed.cs` with 50 common skills (programming languages, frameworks, databases, cloud, DevOps, soft skills)
+- ✅ **JobSeeker access denied on recruiter endpoints:** `GET /api/jobs` now returns 403 Forbidden for non-recruiter accounts instead of 200 with empty list
+- ✅ **Location normalization:** Empty string `""` locations are normalized to `null` in both create and update flows
+- ✅ **Clean database migration:** Dropped and recreated with single `InitialCreate` migration including skill seeds
+
+---
+
 ## [1.5.1] - January 10, 2026
 
 ### Security - Authentication Improvements 🔒
@@ -77,9 +107,9 @@ All notable changes to the JobIntel Recruitment Platform API will be documented 
   - Dribbble (Design showcase)
   - Personal Website (Custom portfolio/blog)
 - ✅ New endpoints:
-  - `PUT /api/profile/social-accounts` - Add or update social links
-  - `GET /api/profile/social-accounts` - Get current social links
-  - `DELETE /api/profile/social-accounts` - Delete all social links
+  - `PUT /api/jobseeker/social-accounts` - Add or update social links
+  - `GET /api/jobseeker/social-accounts` - Get current social links
+  - `DELETE /api/jobseeker/social-accounts` - Delete all social links
 - ✅ **Validation:** Each URL max 300 chars, must be valid URL format
 - ✅ **Wizard Tracking:** ProfileCompletionStep advances to 6 only if at least one link is provided
 - ✅ **Security:** Users can only view/edit/delete their own social accounts
@@ -96,8 +126,8 @@ All notable changes to the JobIntel Recruitment Platform API will be documented 
 - `Services/SocialAccountService.cs` - Service implementation with flexible logic
 - `Controllers/SocialAccountsController.cs` - Social accounts controller with comprehensive documentation
 
-**API Count:** 22 total endpoints (19 previous + 3 new)  
-**Wizard Progress:** Steps 1, 2, 6 complete (50% of 6-step wizard)
+**API Count:** 56 total endpoints across 9 controllers  
+**Wizard Progress:** All 6 steps complete
 
 ---
 
@@ -377,25 +407,32 @@ public enum AuthProvider
 
 ## API Endpoints
 
-### Authentication Endpoints (Complete)
+### Authentication Endpoints (9 — Complete)
 - `POST /api/auth/register` - Register new user
+- `POST /api/auth/login` - User login (requires verified email)
+- `POST /api/auth/google` - Login/Register with Google OAuth
 - `POST /api/auth/verify-email` - Verify email with OTP
 - `POST /api/auth/resend-verification` - Resend verification code
-- `POST /api/auth/login` - User login (requires verified email)
-- `POST /api/auth/forgot-password` - Request password reset
-- `POST /api/auth/verify-reset-otp` - Verify reset OTP
-- `POST /api/auth/reset-password` - Reset password
+- `POST /api/auth/forgot-password` - Request password reset link
+- `POST /api/auth/validate-reset-token` - Check if reset token is valid
+- `POST /api/auth/reset-password` - Reset password with token
 - `GET /api/auth/me` - Get current user (protected)
 
-### Profile Endpoints (Planned for Next Phase)
-- Profile completion wizard endpoints (6 steps)
-- Profile update endpoints
-- Resume upload and processing
-- Profile picture upload
+### Job Seeker Endpoints (35 — Complete)
+- Personal info, wizard status, job titles, profile picture
+- Projects CRUD, Experience CRUD, Education CRUD
+- Resume upload/download, Social accounts management
 
-### Job Management Endpoints (Future)
-- Job posting endpoints
-- Candidate recommendation endpoints
+### Recruiter Endpoints (10 — Complete)
+- Company info, wizard status, industries, company sizes, profile picture
+
+### Reference Data Endpoints (2 — Complete)
+- `GET /api/locations/countries` - Countries (bilingual EN/AR)
+- `GET /api/locations/languages` - Languages (bilingual EN/AR)
+
+### Job Management Endpoints (Planned — Next Phase)
+- Job posting CRUD for recruiters
+- Job search/filtering for job seekers
 - Application management
 
 ---
@@ -403,7 +440,7 @@ public enum AuthProvider
 ## Security Features
 
 ### Implemented
-- ✅ BCrypt password hashing (cost factor: 11)
+- ✅ BCrypt password hashing (cost factor: 12)
 - ✅ Password policy enforcement (uppercase, lowercase, digit, 8+ chars)
 - ✅ JWT tokens with HS256 signing
 - ✅ Token expiry: 24h (auth), 5min (reset), 15min (email verification)
@@ -517,14 +554,11 @@ If you have existing registration code:
 
 ## Next Steps
 
-### Immediate (Phase 2)
-- [ ] Implement profile completion wizard endpoints
-- [ ] Add profile picture upload functionality
-- [ ] Implement resume upload and parsing
-- [ ] Create profile management endpoints
+### Immediate (Next Phase)
+- [ ] Job posting and management (recruiter CRUD)
+- [ ] Job search and filtering
 
 ### Future Phases
-- [ ] Job posting management
 - [ ] AI-powered matching algorithm
 - [ ] Skills assessment system
 - [ ] Recommendation generation
@@ -539,51 +573,49 @@ If you have existing registration code:
 - User registration (JobSeeker and Recruiter)
 - Email verification flow
 - Login with verified account
-- Password reset flow (forgot → verify OTP → reset)
+- Password reset flow (forgot → validate-token → reset)
 - Protected endpoint access with JWT
-- Email sending (SMTP)
-- Database migrations
+- Google OAuth login/register
+- Job Seeker profile wizard (all 6 steps)
+- Recruiter profile (company info, picture)
+- File uploads (resume PDF, profile picture)
+- Reference data endpoints (countries, languages)
 
 ### 🧪 Ready for Testing
-- All authentication endpoints via Swagger UI
+- All 56 endpoints via Swagger UI
 - CORS integration with React frontend
-- Error handling and validation
 
 ---
 
 ## Known Limitations
 
-1. **Email Service:** Currently requires external SMTP server (Gmail, Outlook, etc.)
+1. **Email Service:** Currently requires external SMTP server (Gmail)
    - Recommendation: Use transactional email service (SendGrid, Mailgun) in production
 
 2. **JWT Secret:** Development secret key is used
    - Recommendation: Generate strong random key for production
 
-3. **No Profile Completion:** Profile wizard endpoints not yet implemented
-   - Status: Planned for next phase
-
-5. **No File Upload:** Resume and profile picture upload not yet implemented
-   - Status: Planned for next phase
+3. **No Job Management:** Job posting endpoints not yet implemented
+   - Status: Planned as next module (see JOBS_MODULE_IMPLEMENTATION_GUIDE.md)
 
 ---
 
 ## Support & Documentation
 
 ### For Frontend Developers
-- 📖 [React Integration Guide](REACT_INTEGRATION_GUIDE.md) - Complete integration guide with TypeScript examples
-- 📖 [API Reference](API_REFERENCE.md) - Complete endpoint documentation
+- [Auth API Integration Guide](API/AUTH_API_INTEGRATION.md) — Complete auth flow guide
+- [API Reference](API/API_REFERENCE.md) — All 56 endpoints documented
 
 ### For Backend Developers
-- 📖 [Setup Guide](SETUP_GUIDE.md) - Project setup and configuration
-- 📖 [Email Setup Guide](EMAIL_SETUP_GUIDE.md) - Email service configuration
-- 📖 [Database Documentation](database-documentation.md) - Database schema reference
+- [Setup Guide](Guides/SETUP_GUIDE.md) — Project setup and configuration
+- [Email Setup Guide](Guides/EMAIL_SETUP_GUIDE.md) — Email service configuration
+- [Database ERD](Database/ERD_DIAGRAM.md) — 19-table database schema
 
 ### API Testing
-- 🌐 Swagger UI: `http://localhost:5217/swagger`
-- 📄 API Collection: `RecruitmentPlatformAPI.http`
+- Swagger UI: `http://localhost:5217/swagger`
 
 ---
 
-**Last Updated:** December 2025  
-**API Version:** 1.1.0  
-**Status:** ✅ Ready for Frontend Integration (Email/Password + Google OAuth)
+**Last Updated:** February 2026  
+**API Version:** 1.5.1  
+**Status:** ✅ Ready for Frontend Integration (Complete Auth + Profile + Recruiter modules)

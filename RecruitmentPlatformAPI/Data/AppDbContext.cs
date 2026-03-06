@@ -178,6 +178,11 @@ namespace RecruitmentPlatformAPI.Data
                  .WithMany()
                  .HasForeignKey(j => j.RecruiterId)
                  .OnDelete(DeleteBehavior.Cascade);
+
+                // Store EmploymentType enum as string in database (matches existing nvarchar(50) column)
+                b.Property(j => j.EmploymentType)
+                 .HasConversion<string>()
+                 .HasMaxLength(50);
             });
 
             // JobSeekerSkill - many-to-many junction
@@ -304,6 +309,7 @@ namespace RecruitmentPlatformAPI.Data
             modelBuilder.Entity<JobTitle>().HasData(JobTitleSeed.GetJobTitles());
             modelBuilder.Entity<Country>().HasData(CountrySeed.GetCountries());
             modelBuilder.Entity<Language>().HasData(LanguageSeed.GetLanguages());
+            modelBuilder.Entity<Skill>().HasData(SkillSeed.GetSkills());
 
             // ============= Assessment Quiz Configuration =============
             

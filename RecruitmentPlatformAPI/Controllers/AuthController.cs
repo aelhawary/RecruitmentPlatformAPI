@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using RecruitmentPlatformAPI.DTOs.Auth;
+using RecruitmentPlatformAPI.DTOs.Common;
 using RecruitmentPlatformAPI.Services.Auth;
 
 namespace RecruitmentPlatformAPI.Controllers
@@ -10,6 +11,7 @@ namespace RecruitmentPlatformAPI.Controllers
     /// </summary>
     [ApiController]
     [Route("api/[controller]")]
+    [Produces("application/json")]
     public class AuthController : ControllerBase
     {
         private readonly IAuthService _authService;
@@ -275,7 +277,7 @@ namespace RecruitmentPlatformAPI.Controllers
 
             if (string.IsNullOrEmpty(userId))
             {
-                return Unauthorized(new { Success = false, Message = "Invalid token" });
+                return Unauthorized(new ApiErrorResponse("Invalid token"));
             }
 
             var response = new CurrentUserResponse
