@@ -10,6 +10,9 @@ namespace RecruitmentPlatformAPI.Services.JobSeeker
     /// </summary>
     public class ExperienceService : IExperienceService
     {
+        // Wizard step constants
+        private const int ExperienceEducationStep = 2;
+
         private readonly AppDbContext _context;
         private readonly ILogger<ExperienceService> _logger;
 
@@ -86,6 +89,17 @@ namespace RecruitmentPlatformAPI.Services.JobSeeker
                 };
 
                 _context.Experiences.Add(experience);
+
+                // Update wizard progress to step 2 (Experience & Education) if not reached yet
+                var user = await _context.Users.FindAsync(userId);
+                if (user != null && user.ProfileCompletionStep < ExperienceEducationStep)
+                {
+                    user.ProfileCompletionStep = ExperienceEducationStep;
+                    user.UpdatedAt = DateTime.UtcNow;
+                    _context.Users.Update(user);
+                    _logger.LogInformation("Updated ProfileCompletionStep to {Step} for user {UserId}", ExperienceEducationStep, userId);
+                }
+
                 await _context.SaveChangesAsync();
 
                 _logger.LogInformation("Experience added for user {UserId}: {JobTitle} at {Company}", 
