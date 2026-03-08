@@ -14,7 +14,7 @@ namespace RecruitmentPlatformAPI.Services.JobSeeker
         private readonly ILogger<SocialAccountService> _logger;
 
         // Wizard step constant
-        private const int SocialLinksStep = 6;
+        private const int SocialLinksStep = 4;
 
         public SocialAccountService(AppDbContext context, ILogger<SocialAccountService> logger)
         {

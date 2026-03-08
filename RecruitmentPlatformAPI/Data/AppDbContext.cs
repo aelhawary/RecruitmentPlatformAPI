@@ -23,6 +23,7 @@ namespace RecruitmentPlatformAPI.Data
         public DbSet<Resume> Resumes { get; set; }
         public DbSet<Skill> Skills { get; set; }
         public DbSet<JobSeekerSkill> JobSeekerSkills { get; set; }
+        public DbSet<Certificate> Certificates { get; set; }
         public DbSet<Job> Jobs { get; set; }
         public DbSet<JobSkill> JobSkills { get; set; }
         public DbSet<Recommendation> Recommendations { get; set; }
@@ -93,6 +94,11 @@ namespace RecruitmentPlatformAPI.Data
                  .WithMany()
                  .HasForeignKey(e => e.JobSeekerId)
                  .OnDelete(DeleteBehavior.Cascade);
+
+                // Store Degree enum as string in database
+                b.Property(e => e.Degree)
+                 .HasConversion<string>()
+                 .HasMaxLength(50);
                 
                 // Check constraint: EndDate must be >= StartDate
                 b.ToTable(t => t.HasCheckConstraint(
@@ -169,6 +175,25 @@ namespace RecruitmentPlatformAPI.Data
                  .OnDelete(DeleteBehavior.Cascade);
                 
                 b.HasIndex(s => s.JobSeekerId).IsUnique();
+            });
+
+            // Certificate - many-to-one with JobSeeker
+            modelBuilder.Entity<Certificate>(b =>
+            {
+                b.HasOne(c => c.JobSeeker)
+                 .WithMany()
+                 .HasForeignKey(c => c.JobSeekerId)
+                 .OnDelete(DeleteBehavior.Cascade);
+
+                // Check constraint: ExpirationDate must be >= IssueDate
+                b.ToTable(t => t.HasCheckConstraint(
+                    "CK_Certificate_ExpirationDateAfterIssueDate",
+                    "[ExpirationDate] IS NULL OR [IssueDate] IS NULL OR [ExpirationDate] >= [IssueDate]"
+                ));
+
+                // Index for querying non-deleted certificates
+                b.HasIndex(c => new { c.JobSeekerId, c.IsDeleted })
+                 .HasDatabaseName("IX_Certificate_JobSeekerId_IsDeleted");
             });
 
             // Job - many-to-one with Recruiter

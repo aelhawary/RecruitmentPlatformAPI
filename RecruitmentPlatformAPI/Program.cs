@@ -111,6 +111,8 @@ builder.Services.AddScoped<IProfilePictureService, ProfilePictureService>();
 builder.Services.AddScoped<IExperienceService, ExperienceService>();
 builder.Services.AddScoped<IEducationService, EducationService>();
 builder.Services.AddScoped<IJobService, JobService>();
+builder.Services.AddScoped<ICertificateService, CertificateService>();
+builder.Services.AddScoped<IJobSeekerSkillService, JobSeekerSkillService>();
 
 // Swagger/OpenAPI
 builder.Services.AddEndpointsApiExplorer();

@@ -274,6 +274,7 @@ namespace RecruitmentPlatformAPI.Controllers
             var role = User.FindFirst(System.Security.Claims.ClaimTypes.Role)?.Value;
             var firstName = User.FindFirst("FirstName")?.Value;
             var lastName = User.FindFirst("LastName")?.Value;
+            var profileCompletionStep = User.FindFirst("ProfileCompletionStep")?.Value;
 
             if (string.IsNullOrEmpty(userId))
             {
@@ -290,7 +291,8 @@ namespace RecruitmentPlatformAPI.Controllers
                     Name = name ?? string.Empty,
                     Role = role ?? string.Empty,
                     FirstName = firstName ?? string.Empty,
-                    LastName = lastName ?? string.Empty
+                    LastName = lastName ?? string.Empty,
+                    ProfileCompletionStep = int.TryParse(profileCompletionStep, out var step) ? step : 0
                 }
             };
 

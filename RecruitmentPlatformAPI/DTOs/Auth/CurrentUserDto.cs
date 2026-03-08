@@ -11,6 +11,10 @@ namespace RecruitmentPlatformAPI.DTOs.Auth
         public string Role { get; set; } = string.Empty;
         public string FirstName { get; set; } = string.Empty;
         public string LastName { get; set; } = string.Empty;
+        /// <summary>
+        /// Profile wizard completion step (0 = not started, 1-3 = in progress, 4 = complete)
+        /// </summary>
+        public int ProfileCompletionStep { get; set; }
     }
 
     /// <summary>

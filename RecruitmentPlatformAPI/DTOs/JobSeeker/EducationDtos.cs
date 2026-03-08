@@ -1,4 +1,5 @@
 using System.ComponentModel.DataAnnotations;
+using RecruitmentPlatformAPI.Enums;
 
 namespace RecruitmentPlatformAPI.DTOs.JobSeeker
 {
@@ -16,12 +17,11 @@ namespace RecruitmentPlatformAPI.DTOs.JobSeeker
         public string Institution { get; set; } = string.Empty;
 
         /// <summary>
-        /// Degree type (e.g., Bachelor's, Master's, PhD)
+        /// Degree level: HighSchool, Diploma, Associate, Bachelor, Master, PhD, Other
         /// </summary>
-        /// <example>Bachelor's</example>
+        /// <example>Bachelor</example>
         [Required(ErrorMessage = "Degree is required")]
-        [MaxLength(100, ErrorMessage = "Degree cannot exceed 100 characters")]
-        public string Degree { get; set; } = string.Empty;
+        public Degree Degree { get; set; }
 
         /// <summary>
         /// Field of Study / Major
@@ -80,9 +80,9 @@ namespace RecruitmentPlatformAPI.DTOs.JobSeeker
         public string Institution { get; set; } = string.Empty;
 
         /// <summary>
-        /// Degree type
+        /// Degree level
         /// </summary>
-        public string Degree { get; set; } = string.Empty;
+        public Degree Degree { get; set; }
 
         /// <summary>
         /// Field of Study / Major

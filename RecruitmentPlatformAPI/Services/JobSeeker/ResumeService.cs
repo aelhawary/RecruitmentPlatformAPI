@@ -173,7 +173,7 @@ namespace RecruitmentPlatformAPI.Services.JobSeeker
                         Success = true,
                         Message = "No resume uploaded yet.",
                         Resume = null,
-                        CurrentStep = 3
+                        CurrentStep = 1
                     };
                 }
 
@@ -278,7 +278,7 @@ namespace RecruitmentPlatformAPI.Services.JobSeeker
                     Success = true,
                     Message = "Resume deleted successfully",
                     Resume = null,
-                    CurrentStep = 3
+                    CurrentStep = 1
                 };
             }
             catch (Exception ex)

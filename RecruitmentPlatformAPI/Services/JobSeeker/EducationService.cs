@@ -73,7 +73,7 @@ namespace RecruitmentPlatformAPI.Services.JobSeeker
                 {
                     JobSeekerId = jobSeeker.Id,
                     Institution = dto.Institution.Trim(),
-                    Degree = dto.Degree.Trim(),
+                    Degree = dto.Degree,
                     Major = dto.FieldOfStudy.Trim(), // FieldOfStudy maps to Major in model
                     GradeOrGPA = dto.GradeOrGPA?.Trim(),
                     StartDate = dto.StartDate,
@@ -123,7 +123,7 @@ namespace RecruitmentPlatformAPI.Services.JobSeeker
                 }
 
                 education.Institution = dto.Institution.Trim();
-                education.Degree = dto.Degree.Trim();
+                education.Degree = dto.Degree;
                 education.Major = dto.FieldOfStudy.Trim();
                 education.GradeOrGPA = dto.GradeOrGPA?.Trim();
                 education.StartDate = dto.StartDate;

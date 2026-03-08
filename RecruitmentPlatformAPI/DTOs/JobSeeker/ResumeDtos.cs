@@ -85,8 +85,8 @@ namespace RecruitmentPlatformAPI.DTOs.JobSeeker
         /// <summary>
         /// Current step of the profile wizard
         /// </summary>
-        /// <example>3</example>
-        public int CurrentStep { get; set; } = 3;
+        /// <example>1</example>
+        public int CurrentStep { get; set; } = 1;
 
         public static ResumeResponseDto SuccessResult(ResumeDto resume, string message = "Operation successful")
         {
@@ -95,7 +95,7 @@ namespace RecruitmentPlatformAPI.DTOs.JobSeeker
                 Success = true,
                 Message = message,
                 Resume = resume,
-                CurrentStep = 3
+                CurrentStep = 1
             };
         }
 
@@ -106,7 +106,7 @@ namespace RecruitmentPlatformAPI.DTOs.JobSeeker
                 Success = false,
                 Message = message,
                 Resume = null,
-                CurrentStep = 3
+                CurrentStep = 1
             };
         }
     }

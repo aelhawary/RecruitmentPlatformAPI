@@ -6,13 +6,13 @@ namespace RecruitmentPlatformAPI.DTOs.JobSeeker
     public class WizardStatusDto
     {
         /// <summary>
-        /// Current step number (0-6, where 6 means complete)
+        /// Current step number (0-4, where 4 means complete)
         /// </summary>
         /// <example>1</example>
         public int CurrentStep { get; set; }
 
         /// <summary>
-        /// Whether the profile is fully complete (currentStep >= 6)
+        /// Whether the profile is fully complete (currentStep >= 4)
         /// </summary>
         /// <example>false</example>
         public bool IsComplete { get; set; }
@@ -20,7 +20,7 @@ namespace RecruitmentPlatformAPI.DTOs.JobSeeker
         /// <summary>
         /// Human-readable name of the current step
         /// </summary>
-        /// <example>Personal Information</example>
+        /// <example>Personal Info &amp; CV</example>
         public string StepName { get; set; } = string.Empty;
 
         /// <summary>
@@ -72,7 +72,7 @@ namespace RecruitmentPlatformAPI.DTOs.JobSeeker
         public string Message { get; set; } = string.Empty;
 
         /// <summary>
-        /// Updated profile completion step (0-6)
+        /// Updated profile completion step (0-4)
         /// </summary>
         /// <example>1</example>
         public int ProfileCompletionStep { get; set; }

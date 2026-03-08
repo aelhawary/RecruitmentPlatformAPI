@@ -21,6 +21,11 @@ namespace RecruitmentPlatformAPI.Configuration
         public string ProfilePicturesFolder { get; set; } = "ProfilePictures";
 
         /// <summary>
+        /// Subdirectory for certificate files
+        /// </summary>
+        public string CertificatesFolder { get; set; } = "Certificates";
+
+        /// <summary>
         /// Maximum file size in bytes for resumes (default: 10MB)
         /// </summary>
         public long MaxFileSizeBytes { get; set; } = 10 * 1024 * 1024; // 10 MB

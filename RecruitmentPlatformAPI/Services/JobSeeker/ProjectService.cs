@@ -14,7 +14,7 @@ namespace RecruitmentPlatformAPI.Services.JobSeeker
         private readonly ILogger<ProjectService> _logger;
         
         // Wizard step constants
-        private const int ProjectsStep = 2;
+        private const int ProjectsStep = 3;
 
         public ProjectService(AppDbContext context, ILogger<ProjectService> logger)
         {

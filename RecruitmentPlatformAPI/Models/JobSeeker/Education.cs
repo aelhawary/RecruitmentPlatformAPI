@@ -1,3 +1,4 @@
+using RecruitmentPlatformAPI.Enums;
 using System.ComponentModel.DataAnnotations;
 
 namespace RecruitmentPlatformAPI.Models.JobSeeker
@@ -9,8 +10,8 @@ namespace RecruitmentPlatformAPI.Models.JobSeeker
         public int JobSeekerId { get; set; }
         [Required, MaxLength(150)]
         public string Institution { get; set; } = string.Empty;
-        [Required, MaxLength(100)]
-        public string Degree { get; set; } = string.Empty;
+        [Required]
+        public Degree Degree { get; set; }
         [Required, MaxLength(150)]
         public string Major { get; set; } = string.Empty;
         [MaxLength(50)]

@@ -315,6 +315,40 @@ namespace RecruitmentPlatformAPI.Data.Migrations
                 });
 
             migrationBuilder.CreateTable(
+                name: "Certificates",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    JobSeekerId = table.Column<int>(type: "int", nullable: false),
+                    Title = table.Column<string>(type: "nvarchar(150)", maxLength: 150, nullable: false),
+                    IssuingOrganization = table.Column<string>(type: "nvarchar(150)", maxLength: 150, nullable: true),
+                    IssueDate = table.Column<DateTime>(type: "datetime2", nullable: true),
+                    ExpirationDate = table.Column<DateTime>(type: "datetime2", nullable: true),
+                    FileName = table.Column<string>(type: "nvarchar(150)", maxLength: 150, nullable: true),
+                    StoredFileName = table.Column<string>(type: "nvarchar(200)", maxLength: 200, nullable: true),
+                    FilePath = table.Column<string>(type: "nvarchar(300)", maxLength: 300, nullable: true),
+                    ContentType = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: true),
+                    FileSizeBytes = table.Column<long>(type: "bigint", nullable: true),
+                    DisplayOrder = table.Column<int>(type: "int", nullable: false),
+                    CreatedAt = table.Column<DateTime>(type: "datetime2", nullable: false),
+                    UpdatedAt = table.Column<DateTime>(type: "datetime2", nullable: false),
+                    IsDeleted = table.Column<bool>(type: "bit", nullable: false),
+                    DeletedAt = table.Column<DateTime>(type: "datetime2", nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_Certificates", x => x.Id);
+                    table.CheckConstraint("CK_Certificate_ExpirationDateAfterIssueDate", "[ExpirationDate] IS NULL OR [IssueDate] IS NULL OR [ExpirationDate] >= [IssueDate]");
+                    table.ForeignKey(
+                        name: "FK_Certificates_JobSeekers_JobSeekerId",
+                        column: x => x.JobSeekerId,
+                        principalTable: "JobSeekers",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
                 name: "Educations",
                 columns: table => new
                 {
@@ -322,7 +356,7 @@ namespace RecruitmentPlatformAPI.Data.Migrations
                         .Annotation("SqlServer:Identity", "1, 1"),
                     JobSeekerId = table.Column<int>(type: "int", nullable: false),
                     Institution = table.Column<string>(type: "nvarchar(150)", maxLength: 150, nullable: false),
-                    Degree = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: false),
+                    Degree = table.Column<string>(type: "nvarchar(50)", maxLength: 50, nullable: false),
                     Major = table.Column<string>(type: "nvarchar(150)", maxLength: 150, nullable: false),
                     GradeOrGPA = table.Column<string>(type: "nvarchar(50)", maxLength: 50, nullable: true),
                     StartDate = table.Column<DateTime>(type: "datetime2", nullable: false),
@@ -929,6 +963,11 @@ namespace RecruitmentPlatformAPI.Data.Migrations
                 column: "SkillId");
 
             migrationBuilder.CreateIndex(
+                name: "IX_Certificate_JobSeekerId_IsDeleted",
+                table: "Certificates",
+                columns: new[] { "JobSeekerId", "IsDeleted" });
+
+            migrationBuilder.CreateIndex(
                 name: "IX_Country_IsoCode",
                 table: "Country",
                 column: "IsoCode",
@@ -1071,6 +1110,9 @@ namespace RecruitmentPlatformAPI.Data.Migrations
         {
             migrationBuilder.DropTable(
                 name: "AssessmentAnswer");
+
+            migrationBuilder.DropTable(
+                name: "Certificates");
 
             migrationBuilder.DropTable(
                 name: "Educations");

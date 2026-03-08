@@ -160,7 +160,8 @@ namespace RecruitmentPlatformAPI.Services.Auth
                         Email = user.Email,
                         AccountType = user.AccountType,
                         IsEmailVerified = user.IsEmailVerified,
-                        IsActive = user.IsActive
+                        IsActive = user.IsActive,
+                        ProfileCompletionStep = user.ProfileCompletionStep
                     }
                 };
             }
@@ -330,7 +331,8 @@ namespace RecruitmentPlatformAPI.Services.Auth
                         Email = user.Email,
                         AccountType = user.AccountType,
                         IsEmailVerified = user.IsEmailVerified,
-                        IsActive = user.IsActive
+                        IsActive = user.IsActive,
+                        ProfileCompletionStep = user.ProfileCompletionStep
                     }
                 };
             }
@@ -509,7 +511,8 @@ namespace RecruitmentPlatformAPI.Services.Auth
                             Email = existingUser.Email,
                             AccountType = existingUser.AccountType,
                             IsEmailVerified = existingUser.IsEmailVerified,
-                            IsActive = existingUser.IsActive
+                            IsActive = existingUser.IsActive,
+                            ProfileCompletionStep = existingUser.ProfileCompletionStep
                         }
                     };
                 }
@@ -595,7 +598,8 @@ namespace RecruitmentPlatformAPI.Services.Auth
                         Email = newUser.Email,
                         AccountType = newUser.AccountType,
                         IsEmailVerified = newUser.IsEmailVerified,
-                        IsActive = newUser.IsActive
+                        IsActive = newUser.IsActive,
+                        ProfileCompletionStep = newUser.ProfileCompletionStep
                     }
                 };
             }
@@ -722,7 +726,8 @@ namespace RecruitmentPlatformAPI.Services.Auth
                         Email = user.Email,
                         AccountType = user.AccountType,
                         IsEmailVerified = user.IsEmailVerified,
-                        IsActive = user.IsActive
+                        IsActive = user.IsActive,
+                        ProfileCompletionStep = user.ProfileCompletionStep
                     }
                 };
             }

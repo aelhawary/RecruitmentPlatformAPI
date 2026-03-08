@@ -98,7 +98,7 @@ namespace RecruitmentPlatformAPI.Controllers
         }
 
         /// <summary>
-        /// Get profile completion wizard status (6 steps: Personal Info, Projects, CV Upload, Experience, Education, Social Links)
+        /// Get profile completion wizard status (4 steps: Personal Info, Experience and Education, Projects, Skills and Social and Certificates)
         /// </summary>
         /// <returns>Current step number, step name, completion status, and list of completed steps</returns>
         [HttpGet("wizard-status")]

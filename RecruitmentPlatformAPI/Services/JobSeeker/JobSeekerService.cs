@@ -14,14 +14,12 @@ namespace RecruitmentPlatformAPI.Services.JobSeeker
         private readonly AppDbContext _context;
         private readonly ILogger<JobSeekerService> _logger;
         
-        // Wizard step constants — Job Seeker (6 steps)
-        private const int TotalWizardSteps = 6;
-        private const int PersonalInfoStep = 1;
-        private const int ProjectsStep = 2;
-        private const int CVUploadStep = 3;
-        private const int ExperienceStep = 4;
-        private const int EducationStep = 5;
-        private const int SocialLinksStep = 6;
+        // Wizard step constants — Job Seeker (4 steps)
+        private const int TotalWizardSteps = 4;
+        private const int PersonalInfoStep = 1;       // Step 1: Personal Info + Picture + CV
+        private const int ExperienceEducationStep = 2; // Step 2: Work Experience + Education
+        private const int ProjectsStep = 3;            // Step 3: Projects
+        private const int SkillsSocialCertsStep = 4;   // Step 4: Skills + Social Links + Certificates
 
         public JobSeekerService(AppDbContext context, ILogger<JobSeekerService> logger)
         {
@@ -76,15 +74,9 @@ namespace RecruitmentPlatformAPI.Services.JobSeeker
                     languageIds.Add(dto.SecondLanguageId.Value);
                 }
 
-                var jobTitleTask = _context.JobTitles.AnyAsync(jt => jt.Id == dto.JobTitleId && jt.IsActive);
-                var countryTask = _context.Countries.AnyAsync(c => c.Id == dto.CountryId && c.IsActive);
-                var languagesTask = _context.Languages.CountAsync(l => languageIds.Contains(l.Id) && l.IsActive);
-
-                await Task.WhenAll(jobTitleTask, countryTask, languagesTask);
-
-                var jobTitleExists = await jobTitleTask;
-                var countryExists = await countryTask;
-                var validLanguagesCount = await languagesTask;
+                var jobTitleExists = await _context.JobTitles.AnyAsync(jt => jt.Id == dto.JobTitleId && jt.IsActive);
+                var countryExists = await _context.Countries.AnyAsync(c => c.Id == dto.CountryId && c.IsActive);
+                var validLanguagesCount = await _context.Languages.CountAsync(l => languageIds.Contains(l.Id) && l.IsActive);
 
                 if (!jobTitleExists)
                 {
@@ -241,13 +233,11 @@ namespace RecruitmentPlatformAPI.Services.JobSeeker
 
             var stepNames = new[]
             {
-                "Not Started",           // 0
-                "Personal Information",  // 1
-                "Projects",              // 2
-                "CV Upload",             // 3
-                "Experience",            // 4
-                "Education",             // 5
-                "Social Links"           // 6
+                "Not Started",                        // 0
+                "Personal Info & CV",                  // 1
+                "Experience & Education",              // 2
+                "Projects",                            // 3
+                "Skills, Social Links & Certificates"  // 4
             };
 
             var isComplete = user.ProfileCompletionStep >= TotalWizardSteps;

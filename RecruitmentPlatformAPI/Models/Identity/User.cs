@@ -57,8 +57,8 @@ namespace RecruitmentPlatformAPI.Models.Identity
         
         /// <summary>
         /// Profile Completion Wizard Progress
-        /// 0 = Not started, 1 = Personal Info, 2 = Projects, 3 = CV Upload, 
-        /// 4 = Experience, 5 = Education, 6 = Social Links (Complete)
+        /// 0 = Not started, 1 = Personal Info, 2 = Experience and Education, 
+        /// 3 = Projects, 4 = Skills and Social and Certificates (Complete)
         /// </summary>
         public int ProfileCompletionStep { get; set; } = 0;
     }

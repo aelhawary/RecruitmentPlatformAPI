@@ -8,7 +8,7 @@ using RecruitmentPlatformAPI.Services.JobSeeker;
 namespace RecruitmentPlatformAPI.Controllers
 {
     /// <summary>
-    /// API endpoints for managing resume/CV uploads (Step 3 of Profile Wizard)
+    /// API endpoints for managing resume/CV uploads (Step 1 of Profile Wizard)
     /// </summary>
     [ApiController]
     [Route("api/jobseeker/resume")]
@@ -25,7 +25,7 @@ namespace RecruitmentPlatformAPI.Controllers
         }
 
         /// <summary>
-        /// Upload a new resume/CV or replace the existing one (Step 3 of Profile Wizard)
+        /// Upload a new resume/CV or replace the existing one (Step 1 of Profile Wizard)
         /// </summary>
         /// <remarks>
         /// Requirements:
@@ -193,7 +193,7 @@ namespace RecruitmentPlatformAPI.Controllers
         /// Check if the current user has an uploaded resume
         /// </summary>
         /// <remarks>
-        /// Quick check to determine if the user has completed Step 3 of the profile wizard.
+        /// Quick check to determine if the user has completed the resume part of Step 1 of the profile wizard.
         /// Useful for frontend to show/hide the resume step as completed.
         /// </remarks>
         /// <returns>Boolean indicating if resume exists</returns>
