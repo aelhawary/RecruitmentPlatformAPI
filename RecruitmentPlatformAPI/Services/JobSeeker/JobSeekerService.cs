@@ -217,6 +217,36 @@ namespace RecruitmentPlatformAPI.Services.JobSeeker
             };
         }
 
+        public async Task<ProfileResponseDto> AdvanceWizardStepAsync(int userId, int targetStep)
+        {
+            if (targetStep < 1 || targetStep > TotalWizardSteps)
+            {
+                return new ProfileResponseDto { Success = false, Message = $"Invalid step number. Must be between 1 and {TotalWizardSteps}." };
+            }
+
+            var user = await _context.Users.FindAsync(userId);
+            if (user == null)
+            {
+                return new ProfileResponseDto { Success = false, Message = "User not found" };
+            }
+
+            if (user.ProfileCompletionStep < targetStep)
+            {
+                user.ProfileCompletionStep = targetStep;
+                user.UpdatedAt = DateTime.UtcNow;
+                _context.Users.Update(user);
+                await _context.SaveChangesAsync();
+                _logger.LogInformation("Advanced wizard for user {UserId} to step {Step}", userId, targetStep);
+            }
+
+            return new ProfileResponseDto
+            {
+                Success = true,
+                Message = "Wizard advanced successfully",
+                ProfileCompletionStep = user.ProfileCompletionStep
+            };
+        }
+
         public async Task<WizardStatusDto> GetWizardStatusAsync(int userId)
         {
             var user = await _context.Users.FindAsync(userId);

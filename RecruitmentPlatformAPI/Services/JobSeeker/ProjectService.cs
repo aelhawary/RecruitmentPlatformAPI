@@ -12,9 +12,6 @@ namespace RecruitmentPlatformAPI.Services.JobSeeker
     {
         private readonly AppDbContext _context;
         private readonly ILogger<ProjectService> _logger;
-        
-        // Wizard step constants
-        private const int ProjectsStep = 3;
 
         public ProjectService(AppDbContext context, ILogger<ProjectService> logger)
         {
@@ -87,19 +84,10 @@ namespace RecruitmentPlatformAPI.Services.JobSeeker
                 };
 
                 _context.Projects.Add(project);
-                
-                // Update wizard progress to step 2 (Projects) if user hasn't reached it yet
-                if (user.ProfileCompletionStep < ProjectsStep)
-                {
-                    user.ProfileCompletionStep = ProjectsStep;
-                    user.UpdatedAt = DateTime.UtcNow;
-                    _context.Users.Update(user);
-                    _logger.LogInformation("Updated ProfileCompletionStep to {Step} for user {UserId}", ProjectsStep, userId);
-                }
-                
+
                 await _context.SaveChangesAsync();
 
-                _logger.LogInformation("Project {ProjectId} added successfully for JobSeeker {JobSeekerId}", 
+                _logger.LogInformation("Project {ProjectId} added successfully for JobSeeker {JobSeekerId}",
                     project.Id, jobSeeker.Id);
 
                 return new ProjectResponseDto

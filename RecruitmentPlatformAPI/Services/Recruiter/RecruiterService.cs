@@ -201,6 +201,45 @@ namespace RecruitmentPlatformAPI.Services.Recruiter
             };
         }
 
+        public async Task<ProfileResponseDto> AdvanceWizardStepAsync(int userId, int targetStep)
+        {
+            if (targetStep < 1 || targetStep > TotalRecruiterSteps)
+            {
+                return new ProfileResponseDto { Success = false, Message = $"Invalid step number. Must be between 1 and {TotalRecruiterSteps}." };
+            }
+
+            var user = await _context.Users.FindAsync(userId);
+            if (user == null)
+            {
+                return new ProfileResponseDto { Success = false, Message = "User not found" };
+            }
+
+            if (user.AccountType != AccountType.Recruiter)
+            {
+                return new ProfileResponseDto
+                {
+                    Success = false,
+                    Message = "This operation is only available for recruiter accounts"
+                };
+            }
+
+            if (user.ProfileCompletionStep < targetStep)
+            {
+                user.ProfileCompletionStep = targetStep;
+                user.UpdatedAt = DateTime.UtcNow;
+                _context.Users.Update(user);
+                await _context.SaveChangesAsync();
+                _logger.LogInformation("Advanced wizard for recruiter {UserId} to step {Step}", userId, targetStep);
+            }
+
+            return new ProfileResponseDto
+            {
+                Success = true,
+                Message = "Wizard advanced successfully",
+                ProfileCompletionStep = user.ProfileCompletionStep
+            };
+        }
+
         public async Task<WizardStatusDto> GetWizardStatusAsync(int userId)
         {
             var user = await _context.Users.FindAsync(userId);

@@ -149,16 +149,16 @@ The wizard step **only moves forward** (never decrements). Backend logic: `if (u
 
 | Step | Advancing Endpoint | Notes |
 |------|--------------------|-------|
-| 0 → 1 | `POST /api/jobseeker/personal-info` | Returns `profileCompletionStep` in response |
-| 1 → 2 | `POST /api/jobseeker/experience` or `POST /api/jobseeker/education` | Call wizard-status after save |
-| 2 → 3 | `POST /api/jobseeker/projects` | Call wizard-status after save |
-| 3 → 4 | `PUT /api/jobseeker/social-accounts` | Call wizard-status after save |
+| 0 → 1 | `POST /api/jobseeker/personal-info` | Automatically advances upon saving form. Returns `profileCompletionStep` in response. |
+| 1 → 2 | `POST /api/jobseeker/wizard/advance/2` | Decoupled! Frontend must explicitly call this when user clicks "Next" after Experience/Education step, enabling skip functionality. |
+| 2 → 3 | `POST /api/jobseeker/wizard/advance/3` | Decoupled! Frontend must explicitly call this when user clicks "Next" after Projects step. |
+| 3 → 4 | `POST /api/jobseeker/wizard/advance/4` | Decoupled! Frontend must explicitly call this when user finishes the final step (Skills/Social/Certs). |
 
 ### Recruiter
 
 | Step | Advancing Endpoint | Notes |
 |------|--------------------|-------|
-| 0 → 1 | `POST /api/recruiter/company-info` | Returns `profileCompletionStep` in response |
+| 0 → 1 | `POST /api/recruiter/company-info` | Automatically advances upon saving form. Or explicitly `POST /api/recruiter/wizard/advance/1`. Returns `profileCompletionStep` in response. |
 
 ---
 
@@ -186,21 +186,15 @@ if (user.accountType === 'JobSeeker') {
 ```
 
 ```javascript
-// After saving a wizard step (Job Seeker example)
-await api.savePersonalInfo(data);
+// Example: Moving from Step 1 to Step 2 (Job Seeker)
+// 1. User submits their experience
+await api.post('/api/jobseeker/experience', experienceData);
 
-// Get fresh wizard state from DB
-const wizardUrl = user.accountType === 'JobSeeker'
-  ? '/api/jobseeker/wizard-status'
-  : '/api/recruiter/wizard-status';
-const status = await api.get(wizardUrl);
-const { currentStep, isComplete } = status.data;
+// 2. User clicks "Next" (even if they didn't submit any experience!)
+await api.post('/api/jobseeker/wizard/advance/2'); 
 
-if (isComplete) {
-  router.push('/dashboard');
-} else {
-  router.push(`/wizard/step-${currentStep + 1}`);
-}
+// 3. Inform the local state and route
+router.push(`/wizard/step-3`);
 ```
 
 ```javascript
@@ -227,6 +221,6 @@ if (status.data.isComplete) {
 | **JWT claim** | `ProfileCompletionStep` — snapshot at token issue time |
 | **Real-time source** | `GET /api/jobseeker/wizard-status` (or `/api/recruiter/wizard-status`) |
 | **Step direction** | Forward only — steps never go backward |
-| **Save as Draft** | Each step saves independently to DB; user can leave and resume later |
+| **Paging vs Saving** | Do not confuse saving an array entity (like an Experience) with advancing a step. Explicitly call `POST /wizard/advance/{step}` when the user hits "Next". |
 | **Login routing** | Read `user.profileCompletionStep` from login response for immediate routing |
 | **Mid-session routing** | Call `wizard-status` after each save for the authoritative current step |

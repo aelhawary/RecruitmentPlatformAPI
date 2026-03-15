@@ -118,6 +118,33 @@ namespace RecruitmentPlatformAPI.Controllers
         }
 
         /// <summary>
+        /// Explicitly advance the profile completion wizard step. Used when user skips optional fields or explicitly triggers "Next/Finish".
+        /// </summary>
+        /// <param name="stepNumber">The target step number (1-4)</param>
+        /// <returns>Success response with updated profile completion step</returns>
+        [HttpPost("wizard/advance/{stepNumber}")]
+        [Authorize]
+        [ProducesResponseType(typeof(ApiResponse<ProfileResponseDto>), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ApiErrorResponse), StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(typeof(ApiErrorResponse), StatusCodes.Status401Unauthorized)]
+        public async Task<IActionResult> AdvanceWizardStep(int stepNumber)
+        {
+            var userId = GetCurrentUserId();
+            if (userId == 0)
+            {
+                return Unauthorized(new ApiErrorResponse("User not authenticated"));
+            }
+
+            var result = await _jobSeekerService.AdvanceWizardStepAsync(userId, stepNumber);
+            if (!result.Success)
+            {
+                return BadRequest(new ApiErrorResponse(result.Message));
+            }
+
+            return Ok(new ApiResponse<ProfileResponseDto>(result, result.Message));
+        }
+
+        /// <summary>
         /// Get list of all available job titles (90 titles across 8 categories: Technology, Design, Marketing, Sales, Finance, HR, Operations, Executive)
         /// </summary>
         /// <returns>List of all active job titles with ID, title, and category</returns>

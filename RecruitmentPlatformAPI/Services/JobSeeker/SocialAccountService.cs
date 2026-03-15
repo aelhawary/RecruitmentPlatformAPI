@@ -13,9 +13,6 @@ namespace RecruitmentPlatformAPI.Services.JobSeeker
         private readonly AppDbContext _context;
         private readonly ILogger<SocialAccountService> _logger;
 
-        // Wizard step constant
-        private const int SocialLinksStep = 4;
-
         public SocialAccountService(AppDbContext context, ILogger<SocialAccountService> logger)
         {
             _context = context;
@@ -117,13 +114,6 @@ namespace RecruitmentPlatformAPI.Services.JobSeeker
                     socialAccount.Dribbble = dto.Dribbble?.Trim();
                     socialAccount.PersonalWebsite = dto.PersonalWebsite?.Trim();
                     socialAccount.UpdatedAt = DateTime.UtcNow;
-                }
-
-                // Advance wizard step to 6 if user has at least one link and is at step < 6
-                if (hasAnyLink && user.ProfileCompletionStep < SocialLinksStep)
-                {
-                    _logger.LogInformation("Advancing user {UserId} to wizard step {Step}", userId, SocialLinksStep);
-                    user.ProfileCompletionStep = SocialLinksStep;
                 }
 
                 await _context.SaveChangesAsync();
