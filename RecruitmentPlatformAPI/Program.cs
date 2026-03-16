@@ -49,11 +49,12 @@ builder.Services.AddCors(options =>
     });
 });
 
-// Configure EF Core (SQL Server)
+// Configure EF Core (PostgreSQL)
 var connectionString = builder.Configuration.GetConnectionString("DefaultConnection")
-                       ?? "Server=(localdb)\\mssqllocaldb;Database=RecruitmentPlatformDb;Trusted_Connection=True;MultipleActiveResultSets=true";
+    ?? builder.Configuration["DATABASE_URL"]
+    ?? "Host=localhost;Database=RecruitmentPlatformDb;Username=postgres;Password=postgres";
 builder.Services.AddDbContext<AppDbContext>(options =>
-    options.UseSqlServer(connectionString, b => b.MigrationsAssembly("RecruitmentPlatformAPI")));
+    options.UseNpgsql(connectionString, b => b.MigrationsAssembly("RecruitmentPlatformAPI")));
 
 // Configure JWT Settings
 builder.Services.Configure<JwtSettings>(builder.Configuration.GetSection("JwtSettings"));
