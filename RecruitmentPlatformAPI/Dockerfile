@@ -1,8 +1,11 @@
 FROM mcr.microsoft.com/dotnet/sdk:9.0 AS build
 WORKDIR /src
 
-COPY . .
-RUN dotnet restore "RecruitmentPlatformAPI.csproj"
+COPY RecruitmentPlatformAPI/*.csproj RecruitmentPlatformAPI/
+RUN dotnet restore "RecruitmentPlatformAPI/RecruitmentPlatformAPI.csproj"
+
+COPY RecruitmentPlatformAPI/. RecruitmentPlatformAPI/
+WORKDIR /src/RecruitmentPlatformAPI
 RUN dotnet publish "RecruitmentPlatformAPI.csproj" -c Release -o /app/publish /p:UseAppHost=false
 
 FROM mcr.microsoft.com/dotnet/aspnet:9.0 AS final
