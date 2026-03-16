@@ -10,6 +10,10 @@ using RecruitmentPlatformAPI.Services.Recruiter;
 
 var builder = WebApplication.CreateBuilder(args);
 
+var frontendOriginsConfig = builder.Configuration["FRONTEND_URLS"];
+var frontendOrigins = (frontendOriginsConfig ?? string.Empty)
+    .Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
+
 // Add services to the container.
 builder.Services.AddControllers()
     .AddJsonOptions(options =>
@@ -30,7 +34,14 @@ builder.Services.AddCors(options =>
             // Allow localhost with any port
             if (string.IsNullOrEmpty(origin)) return true; // Allow null origin (file://)
             var uri = new Uri(origin);
-            return uri.Host == "localhost" || uri.Host == "127.0.0.1";
+            if (uri.Host == "localhost" || uri.Host == "127.0.0.1")
+            {
+                return true;
+            }
+
+            // Allow deployed frontend origins configured via env var FRONTEND_URLS
+            return frontendOrigins.Any(allowedOrigin =>
+                string.Equals(allowedOrigin, origin, StringComparison.OrdinalIgnoreCase));
         })
         .AllowAnyMethod()
         .AllowAnyHeader()
@@ -153,6 +164,14 @@ builder.Services.AddSwaggerGen(c =>
 
 var app = builder.Build();
 
+var shouldApplyMigrations = builder.Configuration.GetValue<bool>("APPLY_MIGRATIONS");
+if (shouldApplyMigrations)
+{
+    using var scope = app.Services.CreateScope();
+    var dbContext = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+    dbContext.Database.Migrate();
+}
+
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
 {
@@ -160,7 +179,11 @@ if (app.Environment.IsDevelopment())
     app.UseSwaggerUI();
 }
 
-app.UseHttpsRedirection();
+var enableHttpsRedirection = builder.Configuration.GetValue("ENABLE_HTTPS_REDIRECTION", !app.Environment.IsProduction());
+if (enableHttpsRedirection)
+{
+    app.UseHttpsRedirection();
+}
 
 // Enable CORS
 app.UseCors("AllowFrontend");
@@ -169,6 +192,12 @@ app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapControllers();
+
+var platformPort = builder.Configuration["PORT"];
+if (!string.IsNullOrWhiteSpace(platformPort))
+{
+    app.Urls.Add($"http://0.0.0.0:{platformPort}");
+}
 
 app.Run();
 
