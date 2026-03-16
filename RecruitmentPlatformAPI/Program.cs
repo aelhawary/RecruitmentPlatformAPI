@@ -53,11 +53,19 @@ builder.Services.AddCors(options =>
 var configuredDefaultConnection = builder.Configuration.GetConnectionString("DefaultConnection");
 var databaseUrl = builder.Configuration["DATABASE_URL"];
 
-// Prefer an explicit connection string, but ignore empty values from env vars.
-var connectionString = !string.IsNullOrWhiteSpace(configuredDefaultConnection)
-    ? configuredDefaultConnection
-    : !string.IsNullOrWhiteSpace(databaseUrl)
-        ? databaseUrl
+static bool LooksLikeSqlServerConnectionString(string value)
+{
+    return value.Contains("trusted_connection", StringComparison.OrdinalIgnoreCase)
+        || value.Contains("mssqllocaldb", StringComparison.OrdinalIgnoreCase)
+        || value.Contains("initial catalog=", StringComparison.OrdinalIgnoreCase)
+        || value.Contains("server=", StringComparison.OrdinalIgnoreCase);
+}
+
+// In hosted environments (Railway), DATABASE_URL should win over appsettings defaults.
+var connectionString = !string.IsNullOrWhiteSpace(databaseUrl)
+    ? databaseUrl
+    : !string.IsNullOrWhiteSpace(configuredDefaultConnection) && !LooksLikeSqlServerConnectionString(configuredDefaultConnection)
+        ? configuredDefaultConnection
         : "Host=localhost;Database=RecruitmentPlatformDb;Username=postgres;Password=postgres";
 
 // Railway/Heroku-style URLs use: postgresql://user:pass@host:port/db
