@@ -50,9 +50,29 @@ builder.Services.AddCors(options =>
 });
 
 // Configure EF Core (PostgreSQL)
-var connectionString = builder.Configuration.GetConnectionString("DefaultConnection")
-    ?? builder.Configuration["DATABASE_URL"]
-    ?? "Host=localhost;Database=RecruitmentPlatformDb;Username=postgres;Password=postgres";
+var configuredDefaultConnection = builder.Configuration.GetConnectionString("DefaultConnection");
+var databaseUrl = builder.Configuration["DATABASE_URL"];
+
+// Prefer an explicit connection string, but ignore empty values from env vars.
+var connectionString = !string.IsNullOrWhiteSpace(configuredDefaultConnection)
+    ? configuredDefaultConnection
+    : !string.IsNullOrWhiteSpace(databaseUrl)
+        ? databaseUrl
+        : "Host=localhost;Database=RecruitmentPlatformDb;Username=postgres;Password=postgres";
+
+// Railway/Heroku-style URLs use: postgresql://user:pass@host:port/db
+if (connectionString.StartsWith("postgres://", StringComparison.OrdinalIgnoreCase) ||
+    connectionString.StartsWith("postgresql://", StringComparison.OrdinalIgnoreCase))
+{
+    var uri = new Uri(connectionString);
+    var userInfo = uri.UserInfo.Split(':', 2);
+    var username = userInfo.Length > 0 ? Uri.UnescapeDataString(userInfo[0]) : string.Empty;
+    var password = userInfo.Length > 1 ? Uri.UnescapeDataString(userInfo[1]) : string.Empty;
+    var database = uri.AbsolutePath.Trim('/');
+
+    connectionString = $"Host={uri.Host};Port={uri.Port};Database={database};Username={username};Password={password}";
+}
+
 builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseNpgsql(connectionString, b => b.MigrationsAssembly("RecruitmentPlatformAPI")));
 
@@ -170,7 +190,7 @@ if (shouldApplyMigrations)
 {
     using var scope = app.Services.CreateScope();
     var dbContext = scope.ServiceProvider.GetRequiredService<AppDbContext>();
-    // dbContext.Database.Migrate();
+    dbContext.Database.Migrate();
 }
 
 // Configure the HTTP request pipeline.
