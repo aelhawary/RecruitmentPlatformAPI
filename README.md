@@ -248,6 +248,66 @@ Seed data: **90** job titles, **65** countries, **50** languages (bilingual EN/A
 
 ---
 
+## Deploy Backend To Railway (Recommended)
+
+This repository is now prepared for Railway deployment using Docker.
+
+### 1. Push to GitHub
+
+```bash
+git add .
+git commit -m "Prepare Railway deployment"
+git push
+```
+
+### 2. Create Railway Service
+
+1. Open `https://railway.app`
+2. New Project → Deploy from GitHub repo
+3. Select this repository
+
+Railway uses the root `railway.json` and builds from:
+
+`Backend/RecruitmentPlatformAPI/Dockerfile`
+
+### 3. Set Railway Variables (Required)
+
+Use `Backend/RecruitmentPlatformAPI/.env.railway.example` as a template.
+
+Minimum required variables:
+
+- `ConnectionStrings__DefaultConnection`
+- `JwtSettings__SecretKey`
+- `JwtSettings__Issuer`
+- `JwtSettings__Audience`
+- `EmailSettings__ApplicationUrl`
+- `FileStorage__BaseUrl`
+- `FRONTEND_URLS`
+- `EmailSettings__SmtpServer`
+- `EmailSettings__SmtpPort`
+- `EmailSettings__SenderEmail`
+- `EmailSettings__SenderPassword`
+- `EmailSettings__SenderName`
+- `EmailSettings__EnableSsl`
+- `EmailSettings__FrontendUrl`
+
+Optional but recommended:
+
+- `APPLY_MIGRATIONS=true`
+- `ENABLE_HTTPS_REDIRECTION=false`
+
+### 4. Get Public API URL
+
+After deploy finishes, Railway gives a URL like:
+
+`https://yourproject.up.railway.app`
+
+Use it in frontend as:
+
+`VITE_API_BASE_URL=https://yourproject.up.railway.app`
+
+---
+
 ## Next Step
 
 The immediate next implementation is the **Job Management module** (recruiter job posting CRUD). See [JOBS_MODULE_IMPLEMENTATION_GUIDE.md](Docs/Guides/JOBS_MODULE_IMPLEMENTATION_GUIDE.md) for the complete plan.
